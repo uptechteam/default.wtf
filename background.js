@@ -5,6 +5,11 @@ chrome.runtime.onInstalled.addListener(() => {
   console.log(`Default Account set to ${defaultAccount}`);
 });
 
+chrome.storage.sync.get({ defaultAccount }, (data) => {
+  // TODO: need to call this update every time default account updates
+  defaultAccount = data.defaultAccount ?? 0;
+});
+
 chrome.runtime.onMessage.addListener((data, sender, sendResponse) => {
   const url =
     "https://accounts.google.com/ListAccounts?gpsia=1&source=ogb&mo=1&origin=https://accounts.google.com";
@@ -30,8 +35,8 @@ chrome.runtime.onMessage.addListener((data, sender, sendResponse) => {
 
 chrome.webRequest.onBeforeRequest.addListener(
   (details) => {
-    console.log("webRequest.onBeforeRequest, url: ", details.url);
     if (
+      details.url &&
       // test if it's one of the Google services
       /https?:\/\/.*\.google\.co.*/i.test(details.url) &&
       details.method === "GET" &&
@@ -39,9 +44,9 @@ chrome.webRequest.onBeforeRequest.addListener(
       details.url.toLowerCase().indexOf("authuser") < 0 &&
       !/https?:\/\/.*\.google\.co.*\/u\/\d+/i.test(details.url)
     ) {
-      const newArg = "authuser=" + "1";
+      const newArg = "authuser=" + defaultAccount;
       var redirectUrl =
-        details.url + (_redirectUrl.indexOf("?") < 0 ? "?" : "&") + newArg;
+        details.url + (details.url.indexOf("?") < 0 ? "?" : "&") + newArg;
       console.log(
         "webRequest.onBeforeRequest, found URL, redirecting to: ",
         redirectUrl
@@ -49,8 +54,10 @@ chrome.webRequest.onBeforeRequest.addListener(
       return { redirectUrl };
     }
   },
+  // filters
   {
-    urls: ["https://calendar.google.com/*"],
+    urls: ["*://*.google.com/*"],
   },
+  // extraInfoSpec
   ["blocking"]
 );

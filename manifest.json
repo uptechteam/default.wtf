@@ -14,8 +14,7 @@
   "permissions": [
     "activeTab",
     "storage",
-    "*://accounts.google.com/*",
-    "https://calendar.google.com/*",
+    "*://*.google.com/*",
     "webRequest",
     "webRequestBlocking"
   ],
