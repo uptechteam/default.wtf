@@ -2,28 +2,55 @@ let defaultAccount = 0;
 
 chrome.runtime.onInstalled.addListener(() => {
   chrome.storage.sync.set({ defaultAccount });
-  console.log(`Default Account color set to ${defaultAccount}`);
+  console.log(`Default Account set to ${defaultAccount}`);
 });
 
 chrome.runtime.onMessage.addListener((data, sender, sendResponse) => {
-  const url = 'https://accounts.google.com/ListAccounts?gpsia=1&source=ogb&mo=1&origin=https://accounts.google.com'
+  const url =
+    "https://accounts.google.com/ListAccounts?gpsia=1&source=ogb&mo=1&origin=https://accounts.google.com";
   fetch(url)
-      .then(response => (
-          response.text()
-      ))
-      .then(function(rawText) {
-        const parser = new DOMParser();
-        const html = parser.parseFromString(rawText, 'application/xml').querySelector('script').innerHTML
-        return html.split('\'')[1]
-          .replace(/\\x([0-9a-fA-F]{2})/g, (match, paren) => (
-              String.fromCharCode(parseInt(paren, 16))
-          ))
-          .replace(/\\\//g, '\/')
-          .replace(/\\n/g, '')
-      })
-      .then(text => (
-          JSON.parse(text)
-      ))
-      .then(sendResponse);
-  return true
+    .then((response) => response.text())
+    .then(function (rawText) {
+      const parser = new DOMParser();
+      const html = parser
+        .parseFromString(rawText, "application/xml")
+        .querySelector("script").innerHTML;
+      return html
+        .split("'")[1]
+        .replace(/\\x([0-9a-fA-F]{2})/g, (match, paren) =>
+          String.fromCharCode(parseInt(paren, 16))
+        )
+        .replace(/\\\//g, "/")
+        .replace(/\\n/g, "");
+    })
+    .then((text) => JSON.parse(text))
+    .then(sendResponse);
+  return true;
 });
+
+chrome.webRequest.onBeforeRequest.addListener(
+  (details) => {
+    console.log("webRequest.onBeforeRequest, url: ", details.url);
+    if (
+      // test if it's one of the Google services
+      /https?:\/\/.*\.google\.co.*/i.test(details.url) &&
+      details.method === "GET" &&
+      // test if the URL does not contain "authuser" or "/u/0"
+      details.url.toLowerCase().indexOf("authuser") < 0 &&
+      !/https?:\/\/.*\.google\.co.*\/u\/\d+/i.test(details.url)
+    ) {
+      const newArg = "authuser=" + "1";
+      var redirectUrl =
+        details.url + (_redirectUrl.indexOf("?") < 0 ? "?" : "&") + newArg;
+      console.log(
+        "webRequest.onBeforeRequest, found URL, redirecting to: ",
+        redirectUrl
+      );
+      return { redirectUrl };
+    }
+  },
+  {
+    urls: ["https://calendar.google.com/*"],
+  },
+  ["blocking"]
+);
