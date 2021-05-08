@@ -2,12 +2,16 @@ let defaultAccount = 0;
 
 chrome.runtime.onInstalled.addListener(() => {
   chrome.storage.sync.set({ defaultAccount });
-  console.log(`Default Account set to ${defaultAccount}`);
 });
 
 chrome.storage.sync.get({ defaultAccount }, (data) => {
-  // TODO: need to call this update every time default account updates
   defaultAccount = data.defaultAccount ?? 0;
+});
+
+chrome.storage.onChanged.addListener(function(changes, namespace) {
+  if ("defaultAccount" in changes) {
+      defaultAccount = changes["defaultAccount"].newValue;
+  }
 });
 
 chrome.runtime.onMessage.addListener((data, sender, sendResponse) => {
@@ -47,10 +51,6 @@ chrome.webRequest.onBeforeRequest.addListener(
       const newArg = "authuser=" + defaultAccount;
       var redirectUrl =
         details.url + (details.url.indexOf("?") < 0 ? "?" : "&") + newArg;
-      console.log(
-        "webRequest.onBeforeRequest, found URL, redirecting to: ",
-        redirectUrl
-      );
       return { redirectUrl };
     }
   },
