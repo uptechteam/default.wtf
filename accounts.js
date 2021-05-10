@@ -1,3 +1,5 @@
+let defAccount = 0;
+
 function signIn(email) {
   // A builder that returns a function to set the url to allow the user to log in to a signed out account
   return (responses) => {
@@ -29,80 +31,102 @@ function signIn(email) {
 
 function populate(response) {
   // Create the GUI from the strange nested Array structure that Google accounts responds with
-    SyncStorage.get("defaultAccount", (data) => {
-    const defaultAccount = data.defaultAccount;
-    response[1].forEach((info) => {
-      // There is useless info in response[0]; response[1] has the accounts
-      let a = document.createElement("a");
-      a.classList.add("topA");
+  const accounts = response[1].map((info) => ({
+    index: info[7],
+    name: info[2],
+    email: info[3],
+    profileUrl: info[4],
+    isLoggedIn: info.length >= 16, // If the account is signed in (as far as I know)
+  }));
+  chrome.storage.sync.set({ accounts });
+  renderAccounts(accounts, defAccount); // re-render accounts that arrived
+}
 
-      let img = document.createElement("img");
-      img.classList.add("img");
-      img.src = info[4]; // Profile image URL
-      a.appendChild(img);
+function renderAccounts(accounts, defaultAccount) {
+  const accountsBody = document.getElementById("accounts_body");
+  accountsBody.innerHTML = ""; // to remove all children, if any
+  accounts.forEach((user) => {
+    // There is useless info in response[0]; response[1] has the accounts
+    let a = document.createElement("a");
+    a.classList.add("topA");
 
-      let topDiv = document.createElement("div");
-      topDiv.classList.add("top");
+    let img = document.createElement("img");
+    img.classList.add("img");
+    img.src = user.profileUrl;
+    a.appendChild(img);
 
-      let nameDiv = document.createElement("div");
-      nameDiv.classList.add("name");
-      nameDiv.appendChild(document.createTextNode(info[2])); // Name
-      topDiv.appendChild(nameDiv);
+    let topDiv = document.createElement("div");
+    topDiv.classList.add("top");
 
-      let emailDiv = document.createElement("div");
-      emailDiv.classList.add("email");
-      emailDiv.appendChild(document.createTextNode(info[3])); // Email
-      topDiv.appendChild(emailDiv);
+    let nameDiv = document.createElement("div");
+    nameDiv.classList.add("name");
+    nameDiv.appendChild(document.createTextNode(user.name));
+    topDiv.appendChild(nameDiv);
 
-      a.appendChild(topDiv);
+    let emailDiv = document.createElement("div");
+    emailDiv.classList.add("email");
+    emailDiv.appendChild(document.createTextNode(user.email)); // Email
+    topDiv.appendChild(emailDiv);
 
-      if (info.length < 16) {
-        // If the account is signed out (as far as I know)
+    a.appendChild(topDiv);
+
+    if (!user.isLoggedIn) {
+      let cornerDiv = document.createElement("div");
+      cornerDiv.classList.add("corner");
+      cornerDiv.appendChild(document.createTextNode("Signed out"));
+      a.appendChild(cornerDiv);
+      a.addEventListener("click", () => {
+        chrome.tabs.query(
+          {
+            // Get current tab
+            active: true,
+            currentWindow: true,
+          },
+          signIn(info[3])
+        ); // Navigate to signin
+      });
+    } else {
+      if (user.index === defaultAccount) {
+        // Account index (pretty sure)
         let cornerDiv = document.createElement("div");
         cornerDiv.classList.add("corner");
-        cornerDiv.appendChild(document.createTextNode("Signed out"));
+        cornerDiv.appendChild(document.createTextNode("Selected"));
         a.appendChild(cornerDiv);
-        a.addEventListener("click", () => {
-          chrome.tabs.query(
-            {
-              // Get current tab
-              active: true,
-              currentWindow: true,
-            },
-            signIn(info[3])
-          ); // Navigate to signin
-        });
-      } else {
-        if (info[7] === defaultAccount) {
-          // Account index (pretty sure)
-          let cornerDiv = document.createElement("div");
-          cornerDiv.classList.add("corner");
-          cornerDiv.appendChild(document.createTextNode("Selected"));
-          a.appendChild(cornerDiv);
-        }
-        a.addEventListener("click", async () => {
-          SyncStorage.store({ defaultAccount: info[7] }, function () {
-            redirectCurrectTab(info[7]);
-            window.close();
-          });
-        });
       }
-      document.getElementById('accounts_body').appendChild(a);
-    });
+      a.addEventListener("click", async () => {
+        chrome.storage.sync.set({ defaultAccount: user.index }, function () {
+          redirectCurrectTab(user.index);
+          window.close();
+        });
+      });
+    }
+    accountsBody.appendChild(a);
   });
 }
 
-chrome.runtime.sendMessage(null, populate);
+chrome.storage.sync.get(["accounts", "defaultAccount"], (data) => {
+  defAccount = data.defaultAccount ?? 0;
+  if (data.accounts && data.accounts.length) {
+    // render accounts that are in the store, if any
+    renderAccounts(data.accounts, defAccount);
+  }
+  chrome.runtime.sendMessage("fetch_google_accounts", populate);
+});
 
 window.onload = function () {
-  document.getElementById("accounts_button").onclick = function(event) { openPage(event, 'Accounts') };
-  document.getElementById("rules_button").onclick = function(event) { openPage(event, 'Rules') };
-  document.getElementById("accounts_button").click();
-}
+  const accounts = document.getElementById("accounts_button");
+  accounts.onclick = function (event) {
+    openPage(event, "Accounts");
+  };
+  document.getElementById("rules_button").onclick = function (event) {
+    openPage(event, "Rules");
+  };
+  accounts.click();
+};
 
 function openPage(evt, name) {
   // Declare all variables
-  var i, tabcontent, tablinks;
+  let i, tabcontent, tablinks;
 
   // Get all elements with class="tabcontent" and hide them
   tabcontent = document.getElementsByClassName("tabcontent");
