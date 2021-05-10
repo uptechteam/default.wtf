@@ -29,7 +29,7 @@ function signIn(email) {
 
 function populate(response) {
   // Create the GUI from the strange nested Array structure that Google accounts responds with
-  chrome.storage.sync.get("defaultAccount", (data) => {
+    SyncStorage.get("defaultAccount", (data) => {
     const defaultAccount = data.defaultAccount;
     response[1].forEach((info) => {
       // There is useless info in response[0]; response[1] has the accounts
@@ -81,7 +81,7 @@ function populate(response) {
           a.appendChild(cornerDiv);
         }
         a.addEventListener("click", async () => {
-          chrome.storage.sync.set({ defaultAccount: info[7] }, function () {
+          SyncStorage.store({ defaultAccount: info[7] }, function () {
             redirectCurrectTab(info[7]);
             window.close();
           });

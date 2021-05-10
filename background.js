@@ -1,10 +1,11 @@
 let defaultAccount = 0;
 
 chrome.runtime.onInstalled.addListener(() => {
-  chrome.storage.sync.set({ defaultAccount });
+  SyncStorage.store({ defaultAccount });
+  SyncStorage.store({ rules: [] });
 });
 
-chrome.storage.sync.get({ defaultAccount }, (data) => {
+SyncStorage.get('defaultAccount', (data) => {
   defaultAccount = data.defaultAccount ?? 0;
 });
 

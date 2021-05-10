@@ -1,4 +1,5 @@
 <link rel="stylesheet" href="styles.css">
+<script src="utils.js"></script>
 <!-- Tab links -->
 <div class="tab" width=360px>
     <button class="tablinks" id="accounts_button">Default account</button>
@@ -14,8 +15,13 @@
   
 <div id="Rules" class="tabcontent">
     <h3>Add account rules for specific Google services</h3>
-    <div id="rules_body">
-        <script src="rules.js"></script>
+    <div id=service_picker_div></div>
+    <div style="margin-top:10px;" id=account_picker_div></div>
+    <div style="margin-top:15px; margin-bottom:20px;" id='action_button_div'></div>
+    <div style="border-top: 1px solid black;">
+        <h3>Active rules</h3>
+        <div id="rules_body">
+            <script src="rules.js"></script>
+        </div>
     </div>
 </div>
-<script src="utils.js"></script>
