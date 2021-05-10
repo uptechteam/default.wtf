@@ -38,7 +38,7 @@ function populate(response) {
     profileUrl: info[4],
     isLoggedIn: info.length >= 16, // If the account is signed in (as far as I know)
   }));
-  chrome.storage.sync.set({ accounts });
+  SyncStorage.store({ accounts });
   renderAccounts(accounts, defAccount); // re-render accounts that arrived
 }
 
@@ -94,7 +94,7 @@ function renderAccounts(accounts, defaultAccount) {
         a.appendChild(cornerDiv);
       }
       a.addEventListener("click", async () => {
-        chrome.storage.sync.set({ defaultAccount: user.index }, function () {
+        SyncStorage.store({ defaultAccount: user.index }, function () {
           redirectCurrectTab(user.index);
           window.close();
         });
@@ -104,7 +104,7 @@ function renderAccounts(accounts, defaultAccount) {
   });
 }
 
-chrome.storage.sync.get(["accounts", "defaultAccount"], (data) => {
+SyncStorage.get(["accounts", "defaultAccount"], (data) => {
   defAccount = data.defaultAccount ?? 0;
   if (data.accounts && data.accounts.length) {
     // render accounts that are in the store, if any
