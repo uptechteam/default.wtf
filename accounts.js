@@ -87,9 +87,36 @@ function populate(response) {
           });
         });
       }
-      document.body.appendChild(a);
+      document.getElementById('accounts_body').appendChild(a);
     });
   });
 }
 
 chrome.runtime.sendMessage(null, populate);
+
+window.onload = function () {
+  document.getElementById("accounts_button").onclick = function(event) { openPage(event, 'Accounts') };
+  document.getElementById("rules_button").onclick = function(event) { openPage(event, 'Rules') };
+  document.getElementById("accounts_button").click();
+}
+
+function openPage(evt, name) {
+  // Declare all variables
+  var i, tabcontent, tablinks;
+
+  // Get all elements with class="tabcontent" and hide them
+  tabcontent = document.getElementsByClassName("tabcontent");
+  for (i = 0; i < tabcontent.length; i++) {
+    tabcontent[i].style.display = "none";
+  }
+
+  // Get all elements with class="tablinks" and remove the class "active"
+  tablinks = document.getElementsByClassName("tablinks");
+  for (i = 0; i < tablinks.length; i++) {
+    tablinks[i].className = tablinks[i].className.replace(" active", "");
+  }
+
+  // Show the current tab, and add an "active" class to the button that opened the tab
+  document.getElementById(name).style.display = "block";
+  evt.currentTarget.className += " active";
+}
