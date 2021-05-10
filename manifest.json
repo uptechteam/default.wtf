@@ -8,16 +8,62 @@
     "default_popup": "popup.html"
   },
   "background": {
-    "scripts": ["background.js"],
+    "scripts": ["utils.js", "background.js"],
     "persistent": true
   },
   "permissions": [
+    "tabs",
     "activeTab",
     "storage",
     "<all_urls>",
     "webRequest",
     "webRequestBlocking"
   ],
+  "commands": {
+    "switch_to_ga_1": {
+      "suggested_key": {
+        "default": "Alt+1",
+        "mac": "Alt+1"
+      },
+      "description": "Switch to Google Account #1"
+    },
+    "switch_to_ga_2": {
+      "suggested_key": {
+        "default": "Alt+2",
+        "mac": "Alt+2"
+      },
+      "description": "Switch to Google Account #2"
+    },
+    "switch_to_ga_3": {
+      "suggested_key": {
+        "default": "Alt+3",
+        "mac": "Alt+3"
+      },
+      "description": "Switch to Google Account #3"
+    },
+    "switch_to_ga_4": {
+      "suggested_key": {
+        "default": "Alt+4",
+        "mac": "Alt+4"
+      },
+      "description": "Switch to Google Account #4"
+    },
+    "switch_to_ga_5": {
+      "description": "Switch to Google Account #5"
+    },
+    "switch_to_ga_6": {
+      "description": "Switch to Google Account #6"
+    },
+    "switch_to_ga_7": {
+      "description": "Switch to Google Account #7"
+    },
+    "switch_to_ga_8": {
+      "description": "Switch to Google Account #8"
+    },
+    "switch_to_ga_9": {
+      "description": "Switch to Google Account #9"
+    }
+  },
   "icons": {
     "16": "/images/get_started16.png",
     "32": "/images/get_started32.png",
