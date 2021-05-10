@@ -1,14 +1,26 @@
 function setupUI() {
     getRules((data) => {
-        const services = allSupportedGoogleServices();
+        const allServices = allSupportedGoogleServices()
+        let services = [];
+        if (data.rules.length > 0) {
+            for (const service of allServices) {
+                const alreadyInRules = data.rules.filter((e) => e.serviceUrl === service.url).length > 0;
+                if (!alreadyInRules) {
+                    services.push(service)
+                }
+            };
+        } else {
+            services = allServices;
+        }
         const accounts = allAccountsMock();
-        setupAddNewRule(services, accounts);
-        setupRules(data.rules)
+        renderAddNewRule(services, accounts);
+        renderRulesList(data.rules);
     })
     
 }
 
-function setupAddNewRule(services, accounts) {
+function renderAddNewRule(services, accounts) {
+    console.log(services);
     var servicePickerDiv = document.getElementById('service_picker_div');
     servicePickerDiv.innerHTML = "";
     const servicePicker = document.createElement('select')
@@ -57,7 +69,7 @@ function setupAddNewRule(services, accounts) {
     actionButtonDiv.appendChild(button)
 }
 
-function setupRules(rules) {
+function renderRulesList(rules) {
     console.log(rules);
     const rulesBodyDiv = document.getElementById('rules_body');
     rulesBodyDiv.innerHTML = "";
@@ -77,11 +89,29 @@ function setupRules(rules) {
         emailDiv.classList.add("email");
         emailDiv.appendChild(document.createTextNode(rule.accountEmail)); // Email
         topDiv.appendChild(emailDiv);
-
         a.appendChild(topDiv);
+
+        let cornerDiv = document.createElement("div");
+        cornerDiv.classList.add("corner");
+        let button = document.createElement('button')
+        button.appendChild(document.createTextNode('Delete'))
+        button.onclick = function () {
+            deleteRule(rule.serviceUrl, function() {
+                setupUI();
+            });
+        };
+        cornerDiv.appendChild(button);
+        a.appendChild(cornerDiv);
 
         rulesBodyDiv.appendChild(a);
     }
+}
+
+function deleteRule(serviceUrl, callback) {
+    getRules((data) => {
+        const rules = data.rules.filter((r) => r.serviceUrl !== serviceUrl);
+        SyncStorage.store({ rules }, callback);
+    });
 }
 
 function getRules(callback) {
@@ -90,7 +120,6 @@ function getRules(callback) {
 
 function addRule(serviceUrl, accountEmail, accountId, callback) {
     SyncStorage.get('rules', (data) => {
-        console.log(data.rules);
         data.rules.push({ serviceUrl, accountId, accountEmail })
         SyncStorage.store({ rules: data.rules }, callback);
     });

@@ -60,8 +60,8 @@ function allSupportedGoogleServices() {
       url: "https://mail.google.com/"
     },
     {
-        name: "Docs",
-        url: "https://docs.google.com/"
+      name: "Docs",
+      url: "https://docs.google.com/"
     },
     {
       name: "Admin",
@@ -137,7 +137,7 @@ function allSupportedGoogleServices() {
     },
     {
       name: "Adwords",
-      url: "https://adsense.google.com/"
+      url: "https://adwords.google.com/"
     },
     {
       name: "Cloud",
