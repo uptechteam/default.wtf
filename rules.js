@@ -1,17 +1,8 @@
 function setupUI() {
     getRules((data) => {
         const allServices = allSupportedGoogleServices()
-        let services = [];
-        if (data.rules.length > 0) {
-            for (const service of allServices) {
-                const alreadyInRules = data.rules.filter((e) => e.serviceUrl === service.url).length > 0;
-                if (!alreadyInRules) {
-                    services.push(service)
-                }
-            };
-        } else {
-            services = allServices;
-        }
+        const rulesUrls = data.rules.map((r) => r.serviceUrl);
+        let services = allServices.filter((s) => rulesUrls.indexOf(s.url) === -1);
         const accounts = allAccountsMock();
         renderAddNewRule(services, accounts);
         renderRulesList(data.rules);
