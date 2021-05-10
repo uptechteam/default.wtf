@@ -4,3 +4,17 @@ function isGoogleServiceUrl(url) {
     url
   );
 }
+
+function redirectCurrectTab(defaultAccount) {
+  chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+    if (tabs && tabs[0] && isGoogleServiceUrl(tabs[0].url)) {
+      const url = new URL(tabs[0].url);
+      const params = new URLSearchParams(url.search);
+      params.delete("authuser");
+      params.set("authuser", defaultAccount);
+      url.search = params.toString();
+      // TODO: before redirecting, check if the current account is not the same, to avoid unnecessary reloads
+      chrome.tabs.update(tabs[0].id, { url: url.toString() });
+    }
+  });
+}

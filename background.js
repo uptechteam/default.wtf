@@ -67,3 +67,13 @@ chrome.webRequest.onBeforeRequest.addListener(
   // extraInfoSpec
   ["blocking"]
 );
+
+chrome.commands.onCommand.addListener((command) => {
+  if (command?.indexOf("switch_to_ga_") >= 0) {
+    try {
+      const accNum = parseInt(command.charAt(command.length - 1)) - 1;
+      // console.log("commands.onCommand, command: ", command);
+      redirectCurrectTab(accNum);
+    } catch {}
+  }
+});
