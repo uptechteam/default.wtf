@@ -97,7 +97,7 @@ chrome.runtime.sendMessage(null, populate);
 
 window.onload = function () {
   document.getElementById("accounts_button").onclick = function(event) { openPage(event, 'Accounts') };
-  document.getElementById("services_button").onclick = function(event) { openPage(event, 'Services') };
+  document.getElementById("rules_button").onclick = function(event) { openPage(event, 'Rules') };
   document.getElementById("accounts_button").click();
 }
 

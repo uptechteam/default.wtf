@@ -18,7 +18,7 @@ function setupUI() {
       topDiv.appendChild(emailDiv);
 
       a.appendChild(topDiv);
-      document.getElementById('services_body').appendChild(a);
+      document.getElementById('rules_body').appendChild(a);
     }
 }
 
