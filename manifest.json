@@ -8,10 +8,11 @@
     "default_popup": "popup.html"
   },
   "background": {
-    "scripts": ["background.js"],
+    "scripts": ["utils.js", "background.js"],
     "persistent": true
   },
   "permissions": [
+    "tabs",
     "activeTab",
     "storage",
     "<all_urls>",

@@ -73,7 +73,7 @@ function populate(response) {
           ); // Navigate to signin
         });
       } else {
-        if (info[7] == defaultAccount) {
+        if (info[7] === defaultAccount) {
           // Account index (pretty sure)
           let cornerDiv = document.createElement("div");
           cornerDiv.classList.add("corner");
@@ -82,12 +82,26 @@ function populate(response) {
         }
         a.addEventListener("click", async () => {
           chrome.storage.sync.set({ defaultAccount: info[7] }, function () {
+            checkCurrentTabAndRedirect(info[7]);
             window.close();
           });
         });
       }
       document.body.appendChild(a);
     });
+  });
+}
+
+function checkCurrentTabAndRedirect(defaultAccount) {
+  chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+    if (tabs && tabs[0] && isGoogleServiceUrl(tabs[0].url)) {
+      const url = new URL(tabs[0].url);
+      const params = new URLSearchParams(url.search);
+      params.delete("authuser");
+      params.set("authuser", defaultAccount);
+      url.search = params.toString();
+      chrome.tabs.update(tabs[0].id, { url: url.toString() });
+    }
   });
 }
 

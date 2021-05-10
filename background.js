@@ -45,7 +45,7 @@ chrome.webRequest.onBeforeRequest.addListener(
       details.method === "GET" &&
       details.type === "main_frame" &&
       // test if it's one of the Google services
-      /https?:\/\/.*\.google\.co.*/i.test(details.url) &&
+      isGoogleServiceUrl(details.url) &&
       // test if the URL does not contain "authuser" or "/u/0"
       details.url.toLowerCase().indexOf("authuser") < 0 &&
       !/https?:\/\/.*\.google\.co.*\/u\/\d+/i.test(details.url)
