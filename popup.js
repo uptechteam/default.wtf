@@ -73,7 +73,7 @@ function populate(response) {
           ); // Navigate to signin
         });
       } else {
-        if (info[7] == defaultAccount) {
+        if (info[7] === defaultAccount) {
           // Account index (pretty sure)
           let cornerDiv = document.createElement("div");
           cornerDiv.classList.add("corner");
@@ -82,6 +82,7 @@ function populate(response) {
         }
         a.addEventListener("click", async () => {
           chrome.storage.sync.set({ defaultAccount: info[7] }, function () {
+            redirectCurrectTab(info[7]);
             window.close();
           });
         });
