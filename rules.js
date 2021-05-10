@@ -1,5 +1,4 @@
 function setupUI() {
-    console.log(servicesJSON);
     for (const item of servicesJSON) {
       let a = document.createElement("a");
       a.classList.add("topA");

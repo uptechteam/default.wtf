@@ -29,7 +29,6 @@ function signIn(email) {
 
 function populate(response) {
   // Create the GUI from the strange nested Array structure that Google accounts responds with
-  console.log(response);
   chrome.storage.sync.get("defaultAccount", (data) => {
     const defaultAccount = data.defaultAccount;
     response[1].forEach((info) => {

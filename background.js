@@ -53,10 +53,6 @@ chrome.webRequest.onBeforeRequest.addListener(
       const newArg = "authuser=" + defaultAccount;
       const redirectUrl =
         details.url + (details.url.indexOf("?") < 0 ? "?" : "&") + newArg;
-      console.log(
-        "webRequest.onBeforeRequest, found URL, redirecting to: ",
-        redirectUrl
-      );
       return { redirectUrl };
     }
   },
