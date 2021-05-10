@@ -10,10 +10,15 @@ function redirectCurrectTab(defaultAccount) {
     if (tabs && tabs[0] && isGoogleServiceUrl(tabs[0].url)) {
       const url = new URL(tabs[0].url);
       const params = new URLSearchParams(url.search);
+      // check if current user is not the same (?authuser={num} or /u/{num}/)
+      if (`${params.get("authuser")}` === `${defaultAccount}`) return;
+      const uMatch = tabs[0].url.match(/\/u\/(\d+)\//i);
+      if (uMatch && uMatch[1] && `${uMatch[1]}` === `${defaultAccount}`) return;
+
+      // current user is different, reload
       params.delete("authuser");
       params.set("authuser", defaultAccount);
       url.search = params.toString();
-      // TODO: before redirecting, check if the current account is not the same, to avoid unnecessary reloads
       chrome.tabs.update(tabs[0].id, { url: url.toString() });
     }
   });
