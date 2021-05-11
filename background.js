@@ -90,7 +90,6 @@ chrome.tabs.onCreated.addListener((tab) => {
         chrome.tabs.update(tab.id, { url: redirectUrl });
       }
     });
-    // check if need to redirect
   } else {
     const redirectUrl = convertToRedirectUrl(url, defaultAccount);
     if (redirectUrl) {
