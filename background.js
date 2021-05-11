@@ -54,7 +54,6 @@ chrome.webRequest.onBeforeRequest.addListener(
       details.url &&
       // filter only get requests from the main_frame (user-initiated)
       details.method === "GET" &&
-      details.type === "main_frame" &&
       // test if it's one of the Google services
       isGoogleServiceUrl(details.url) &&
       // test if the URL does not contain "authuser" or "/u/0"
@@ -63,19 +62,41 @@ chrome.webRequest.onBeforeRequest.addListener(
     ) {
       const accountId =
         getAccountForService(details.url, rules) ?? defaultAccount;
-      const newArg = "authuser=" + accountId;
-      const redirectUrl =
-        details.url + (details.url.indexOf("?") < 0 ? "?" : "&") + newArg;
-      return { redirectUrl };
+      const redirectUrl = convertToRedirectUrl(details.url, accountId);
+      if (redirectUrl) {
+        console.log("webRequest.onBeforeRequest, redirectUrl: ", redirectUrl);
+        return { redirectUrl };
+      }
     }
   },
   // filters
   {
+    // types: ["main_frame", "sub_frame"],
+    types: ["main_frame"],
     urls: ["<all_urls>"],
   },
   // extraInfoSpec
   ["blocking"]
 );
+
+chrome.tabs.onCreated.addListener((tab) => {
+  const url = tab.pendingUrl || tab.url;
+  if (!url || !isGoogleServiceUrl(url)) return;
+  if (tab.openerTabId) {
+    chrome.tabs.get(tab.openerTabId, (openerTab) => {
+      if (openerTab && isAnyGoogleUrl(openerTab.url)) return;
+      const redirectUrl = convertToRedirectUrl(url, defaultAccount);
+      if (redirectUrl) {
+        chrome.tabs.update(tab.id, { url: redirectUrl });
+      }
+    });
+  } else {
+    const redirectUrl = convertToRedirectUrl(url, defaultAccount);
+    if (redirectUrl) {
+      chrome.tabs.update(tab.id, { url: redirectUrl });
+    }
+  }
+});
 
 chrome.commands.onCommand.addListener((command) => {
   if (command?.indexOf("switch_to_ga_") >= 0) {
