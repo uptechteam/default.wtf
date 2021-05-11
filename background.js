@@ -70,7 +70,6 @@ chrome.webRequest.onBeforeRequest.addListener(
 );
 
 chrome.tabs.onCreated.addListener((tab) => {
-  console.log("tabs.onCreated, tab: ", tab);
   const url = tab.pendingUrl || tab.url;
   if (!url || !isGoogleServiceUrl(url)) return;
   if (tab.openerTabId) {
