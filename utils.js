@@ -5,6 +5,10 @@ function isGoogleServiceUrl(url) {
   );
 }
 
+function isAnyGoogleUrl(url) {
+  return /^https?:\/\/([^?&]*\.)?google\.co.*/i.test(url);
+}
+
 function redirectCurrectTab(defaultAccount) {
   chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
     if (tabs && tabs[0] && isGoogleServiceUrl(tabs[0].url)) {

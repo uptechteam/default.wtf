@@ -43,47 +43,52 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 chrome.webRequest.onBeforeRequest.addListener(
   (details) => {
     if (
-      isGoogleServiceUrl(details.url) &&
-      (details.type === "main_frame" || details.type === "sub_frame") &&
-      details.method === "GET"
-    ) {
-      console.log("webRequest.onBeforeRequest, details: ", details);
-    }
-
-    if (
       details.url &&
       // filter only get requests from the main_frame (user-initiated)
       details.method === "GET" &&
-      (details.type === "main_frame" || details.type === "sub_frame") &&
       // test if it's one of the Google services
-      isGoogleServiceUrl(details.url)
+      isGoogleServiceUrl(details.url) &&
       // test if the URL does not contain "authuser" or "/u/0"
-      // && details.url.toLowerCase().indexOf("authuser") < 0 &&
-      // !/https?:\/\/.*\.google\.co.*\/u\/\d+/i.test(details.url)
+      details.url.toLowerCase().indexOf("authuser") < 0 &&
+      !/https?:\/\/.*\.google\.co.*\/u\/\d+/i.test(details.url)
     ) {
-      // return early when user came from one of Google Services (it's most likely the manual account change)
-      if (details.initiator && isGoogleServiceUrl(details.initiator)) {
-        // TODO: remove log here
-        console.log("webRequest.onBeforeRequest, details: ", details);
-        console.log("webRequest.onBeforeRequest, NO REDIRECT");
-        return;
-      }
-
       const redirectUrl = convertToRedirectUrl(details.url, defaultAccount);
-      console.log("webRequest.onBeforeRequest, details: ", details);
-      console.log("webRequest.onBeforeRequest, redirectUrl: ", redirectUrl);
       if (redirectUrl) {
+        console.log("webRequest.onBeforeRequest, redirectUrl: ", redirectUrl);
         return { redirectUrl };
       }
     }
   },
   // filters
   {
+    // types: ["main_frame", "sub_frame"],
+    types: ["main_frame"],
     urls: ["<all_urls>"],
   },
   // extraInfoSpec
   ["blocking"]
 );
+
+chrome.tabs.onCreated.addListener((tab) => {
+  console.log("tabs.onCreated, tab: ", tab);
+  const url = tab.pendingUrl || tab.url;
+  if (!url || !isGoogleServiceUrl(url)) return;
+  if (tab.openerTabId) {
+    chrome.tabs.get(tab.openerTabId, (openerTab) => {
+      if (openerTab && isAnyGoogleUrl(openerTab.url)) return;
+      const redirectUrl = convertToRedirectUrl(url, defaultAccount);
+      if (redirectUrl) {
+        chrome.tabs.update(tab.id, { url: redirectUrl });
+      }
+    });
+    // check if need to redirect
+  } else {
+    const redirectUrl = convertToRedirectUrl(url, defaultAccount);
+    if (redirectUrl) {
+      chrome.tabs.update(tab.id, { url: redirectUrl });
+    }
+  }
+});
 
 chrome.commands.onCommand.addListener((command) => {
   if (command?.indexOf("switch_to_ga_") >= 0) {
