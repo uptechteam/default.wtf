@@ -1,54 +1,53 @@
 html {
-    overflow: hidden;
+  overflow: hidden;
 }
 
 body {
-    overflow: hidden;
-    margin: 0;
+  overflow: hidden;
+  margin: 0;
 }
-
 /* Parts of the following code comes (mostly) directly from Google's own calculated (not source) styles, for hopeful consistency, with some removed bloat and the exclusion of copyrighted resources like Google Sans. I then adjusted the styles to use new flex-box positioning to solve some issues with resizing. */
 
 .topA {
-    font: 13px/27px Roboto, RobotoDraft, Arial, sans-serif;
-    line-height: normal;
-    font-family: "Segoe UI", "Roboto", arial, sans-serif;
-    outline-offset: -2px;
-    white-space: nowrap;
-    color: inherit;
-    border: none;
-    cursor: pointer;
-    height: 35px;
-    outline: 0;
-    padding: 12px;
-    border-top: 0;
-    display: flex;
-    flex-direction: row;
+  font: 13px/27px Roboto, RobotoDraft, Arial, sans-serif;
+  line-height: normal;
+  font-family: "Segoe UI", "Roboto", arial, sans-serif;
+  outline-offset: -2px;
+  white-space: nowrap;
+  color: inherit;
+  border: none;
+  cursor: pointer;
+  height: 35px;
+  outline: 0;
+  padding: 12px;
+  border-top: 0;
+  display: flex;
+  flex-direction: row;
 }
 
 .img {
-    border-radius: 50%;
-    overflow: hidden;
-    border: none;
-    vertical-align: top;
-    height: 32px;
-    width: 32px;
-    flex-shrink: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  border: none;
+  vertical-align: top;
+  height: 32px;
+  width: 32px;
+  flex-shrink: 0;
 }
 
 .top {
-    margin: 0 0 0 12px;
-    display: flex;
-    flex-direction: column;
-    flex-shrink: 1;
+  margin: 0 0 0 12px;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 1;
 
-    min-width: 0;
+  min-width: 0;
 }
 
 .name {
-    color: #3c4043;
-    font: 500 14px/18px Roboto, RobotoDraft, Helvetica, Arial, sans-serif;
-    letter-spacing: 0.25px;
+  color: #3c4043;
+  font: 500 14px/18px Roboto, RobotoDraft, Helvetica, Arial, sans-serif;
+  letter-spacing: 0.25px;
 }
 
 .serviceName {
@@ -59,74 +58,80 @@ body {
 }
 
 .email {
-    color: #5f6368;
-    font: 400 12px / 16px Roboto, RobotoDraft, Helvetica, Arial, sans-serif;
+  color: #5f6368;
+  font: 400 12px / 16px Roboto, RobotoDraft, Helvetica, Arial, sans-serif;
 }
 
 .corner {
-    color: #5d6369;
-    font: italic 400 12px/14px Roboto, RobotoDraft, Helvetica, Arial, sans-serif;
-    padding: 2px 0 0 5px; /*2px 0 0 20px;*/
-    text-align: right;
-    font-family: Roboto, Arial, sans-serif !important;
-    flex-grow: 1;
+  color: #5d6369;
+  font: italic 400 12px/14px Roboto, RobotoDraft, Helvetica, Arial, sans-serif;
+  padding: 2px 0 0 5px; /*2px 0 0 20px;*/
+  text-align: right;
+  font-family: Roboto, Arial, sans-serif !important;
+  flex-grow: 1;
 }
 
-.topA:active, .topA:focus:active {
-    background-color: #e8e8e9;
+.topA:active,
+.topA:focus:active {
+  background-color: #e8e8e9;
 }
 
-.topA:focus, .topA:hover:focus {
-    background-color: #f4f4f4;
+.topA:focus,
+.topA:hover:focus {
+  background-color: #f4f4f4;
 }
 
 .topA:hover {
-    background-color: #f7f8f8;
+  background-color: #f7f8f8;
 }
 /* Style the tab */
 .tab {
-    overflow: hidden;
-    border: 1px solid #ccc;
-    background-color: #f1f1f1;
-    width: 320px;
-  }
-  
-  /* Style the buttons that are used to open the tab content */
-  .tab button {
-    background-color: inherit;
-    float: left;
-    border: none;
-    outline: none;
-    cursor: pointer;
-    padding: 14px 16px;
-    transition: 0.3s;
-    width: 50%;
-  }
-  
-  /* Change background color of buttons on hover */
-  .tab button:hover {
-    background-color: #ddd;
-  }
-  
-  /* Create an active/current tablink class */
-  .tab button.active {
-    background-color: #ccc;
-  }
-  
-  /* Style the tab content */
-  .tabcontent {
-    display: none;
-    padding: 6px 12px;
-    border: 1px solid #ccc;
-    border-top: none;
-  }
+  overflow: hidden;
+  border: 1px solid #ccc;
+  background-color: #f1f1f1;
+  width: 320px;
+}
 
-  .tabcontent {
-    animation: fadeEffect 1s; /* Fading effect takes 1 second */
+/* Style the buttons that are used to open the tab content */
+.tab button {
+  background-color: inherit;
+  float: left;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 14px 16px;
+  transition: 0.3s;
+  width: 50%;
+}
+
+/* Change background color of buttons on hover */
+.tab button:hover {
+  background-color: #ddd;
+}
+
+/* Create an active/current tablink class */
+.tab button.active {
+  background-color: #ccc;
+}
+
+/* Style the tab content */
+.tabcontent {
+  display: none;
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  border-top: none;
+}
+
+.tabcontent {
+  animation: fadeEffect 1s; /* Fading effect takes 1 second */
+}
+
+/* Go from zero to full opacity */
+@keyframes fadeEffect {
+  from {
+    opacity: 0;
   }
-  
-  /* Go from zero to full opacity */
-  @keyframes fadeEffect {
-    from {opacity: 0;}
-    to {opacity: 1;}
+  to {
+    opacity: 1;
   }
+}

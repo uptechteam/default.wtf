@@ -24,141 +24,164 @@ function redirectCurrectTab(defaultAccount) {
   });
 }
 
-function allAccountsMock() {
-  return [
-    {
-      id: 0,
-      email: "roman.furman6@gmail.com"
-    },
-    {
-      id: 1,
-      email: "roman.furman@uptech.team"
+function getAccountForService(url, rules) {
+  for (const rule of rules) {
+    const reg = new RegExp(
+      `^https?:\/\/[^?&]*${rule.serviceName.toLowerCase()}\.google\.co.*`,
+      "is"
+    );
+    if (reg.test(url)) {
+      return rule.accountId;
     }
-  ]
+  }
+}
+
+function allAccounts(callback) {
+  SyncStorage.get("accounts", callback);
 }
 
 function allSupportedGoogleServices() {
   return [
     {
-        name: "Calendar",
-        url: "https://calendar.google.com/"
+      name: "Calendar",
+      url: "calendar.google.com",
+      img: "./images/logos/calendar.png",
     },
     {
-        name: "Drive",
-        url: "https://drive.google.com/"
+      name: "Drive",
+      url: "drive.google.com",
+      img: "./images/logos/drive.png",
     },
     {
-        name: "Maps",
-        url: "https://maps.google.com/"
+      name: "Maps",
+      url: "maps.google.com",
+      img: "./images/logos/maps.png",
     },
     {
-        name: "Meet",
-        url: "https://meet.google.com/"
+      name: "Meet",
+      url: "meet.google.com",
+      img: "./images/logos/meet.png",
     },
     {
       name: "Mail",
-      url: "https://mail.google.com/"
+      url: "mail.google.com",
+      img: "./images/logos/mail.png",
     },
     {
       name: "Docs",
-      url: "https://docs.google.com/"
+      url: "docs.google.com",
+      img: "./images/logos/docs.png",
     },
     {
       name: "Admin",
-      url: "https://admin.google.com/"
+      url: "admin.google.com",
     },
     {
       name: "Photos",
-      url: "https://photos.google.com/"
+      url: "photos.google.com",
+      img: "./images/logos/photos.png",
     },
     {
       name: "Translate",
-      url: "https://translate.google.com/"
+      url: "translate.google.com",
     },
     {
       name: "Keep",
-      url: "https://keep.google.com/"
+      url: "keep.google.com",
     },
     {
       name: "Hangouts",
-      url: "https://hangouts.google.com/"
+      url: "hangouts.google.com",
     },
     {
       name: "Chat",
-      url: "https://chat.google.com/"
+      url: "chat.google.com",
     },
     {
       name: "Currents",
-      url: "https://currents.google.com/"
+      url: "currents.google.com",
     },
     {
       name: "News",
-      url: "https://news.google.com/"
+      url: "news.google.com",
     },
     {
       name: "Ads",
-      url: "https://ads.google.com/"
+      url: "ads.google.com",
     },
     {
       name: "Ediscovery",
-      url: "https://ediscovery.google.com/"
+      url: "ediscovery.google.com",
     },
     {
       name: "Jamboard",
-      url: "https://jamboard.google.com/"
+      url: "jamboard.google.com",
     },
     {
       name: "Earth",
-      url: "https://earth.google.com/"
+      url: "earth.google.com",
+      img: "./images/logos/earth.png",
     },
     {
       name: "Travel",
-      url: "https://travel.google.com/"
+      url: "travel.google.com",
     },
     {
       name: "Podcasts",
-      url: "https://podcasts.google.com/"
+      url: "podcasts.google.com",
+      img: "./images/logos/podcasts.png",
     },
     {
       name: "Classroom",
-      url: "https://classroom.google.com/"
+      url: "classroom.google.com",
     },
     {
       name: "Business",
-      url: "https://business.google.com/"
+      url: "business.google.com",
+      img: "./images/logos/business.png",
     },
     {
       name: "MyAccount",
-      url: "https://myaccount.google.com/"
+      url: "myaccount.google.com",
     },
     {
       name: "Adsense",
-      url: "https://adsense.google.com/"
+      url: "adsense.google.com",
     },
     {
       name: "Adwords",
-      url: "https://adwords.google.com/"
+      url: "adwords.google.com",
     },
     {
       name: "Cloud",
-      url: "https://cloud.google.com/"
+      url: "cloud.google.com",
+      img: "./images/logos/cloud.png",
     },
     {
       name: "Analytics",
-      url: "https://analytics.google.com/"
-    }
-  ]
+      url: "analytics.google.com",
+      img: "./images/logos/analytics.png",
+    },
+  ];
 }
 
 class SyncStorage {
-
   static store(obj, callback) {
-    chrome.storage.sync.set(obj, callback);  
-  }
-  
-  static get(key, callback) {
-    chrome.storage.sync.get(key, callback)
+    chrome.storage.sync.set(obj, callback);
   }
 
+  static get(key, callback) {
+    chrome.storage.sync.get(key, callback);
+  }
 }
 
+window.onload = function () {
+  const accounts = document.getElementById("accounts_button");
+  accounts.onclick = function (event) {
+    openPage(event, "Accounts");
+  };
+  document.getElementById("rules_button").onclick = function (event) {
+    openPage(event, "Rules");
+  };
+  accounts.click();
+};
