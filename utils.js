@@ -120,6 +120,7 @@ function allSupportedGoogleServices() {
     {
       name: "Earth",
       url: "earth.google.com",
+      img: "./images/logos/earth.png",
     },
     {
       name: "Travel",
@@ -128,6 +129,7 @@ function allSupportedGoogleServices() {
     {
       name: "Podcasts",
       url: "podcasts.google.com",
+      img: "./images/logos/podcasts.png",
     },
     {
       name: "Classroom",
@@ -136,6 +138,7 @@ function allSupportedGoogleServices() {
     {
       name: "Business",
       url: "business.google.com",
+      img: "./images/logos/business.png",
     },
     {
       name: "MyAccount",
@@ -152,10 +155,12 @@ function allSupportedGoogleServices() {
     {
       name: "Cloud",
       url: "cloud.google.com",
+      img: "./images/logos/cloud.png",
     },
     {
       name: "Analytics",
       url: "analytics.google.com",
+      img: "./images/logos/analytics.png",
     },
   ];
 }
