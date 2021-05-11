@@ -63,7 +63,8 @@ chrome.webRequest.onBeforeRequest.addListener(
       const accountId =
         getAccountForService(details.url, rules) ?? defaultAccount;
       const redirectUrl = convertToRedirectUrl(details.url, accountId);
-      if (redirectUrl) {
+      // Cos with "0" there are many redirect problems, and Google handles it anyway
+      if (redirectUrl && accountId !== 0) {
         console.log("webRequest.onBeforeRequest, redirectUrl: ", redirectUrl);
         return { redirectUrl };
       }
