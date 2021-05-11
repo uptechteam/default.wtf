@@ -1,10 +1,11 @@
 let defaultAccount = 0;
 
 chrome.runtime.onInstalled.addListener(() => {
-  chrome.storage.sync.set({ defaultAccount });
+  SyncStorage.store({ defaultAccount });
+  SyncStorage.store({ rules: [] });
 });
 
-chrome.storage.sync.get({ defaultAccount }, (data) => {
+SyncStorage.get('defaultAccount', (data) => {
   defaultAccount = data.defaultAccount ?? 0;
 });
 
@@ -70,7 +71,7 @@ chrome.commands.onCommand.addListener((command) => {
   if (command?.indexOf("switch_to_ga_") >= 0) {
     try {
       const accNum = parseInt(command.charAt(command.length - 1)) - 1;
-      chrome.storage.sync.get("accounts", (data) => {
+      SyncStorage.get("accounts", (data) => {
         // redirect only if accNum is not > than totla number of accounts
         if (data.accounts && data.accounts.length > accNum) {
           redirectCurrectTab(accNum);
