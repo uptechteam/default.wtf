@@ -27,7 +27,7 @@ function redirectCurrectTab(defaultAccount) {
 function getAccountForService(url, rules) {
   for (const rule of rules) {
     const reg = new RegExp(
-      `^https?:\/\/.*${rule.serviceName.toLowerCase()}\.google\.co.*`,
+      `^https?:\/\/[^?&]*${rule.serviceName.toLowerCase()}\.google\.co.*`,
       "is"
     );
     if (reg.test(url)) {
