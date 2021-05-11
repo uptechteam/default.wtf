@@ -60,7 +60,9 @@ function renderAccounts(accounts, defaultAccount) {
 
     let nameDiv = document.createElement("div");
     nameDiv.classList.add("name");
-    nameDiv.appendChild(document.createTextNode(user.name));
+    nameDiv.appendChild(
+      document.createTextNode(`${user.index + 1}) ${user.name}`)
+    );
     topDiv.appendChild(nameDiv);
 
     let emailDiv = document.createElement("div");
