@@ -1,5 +1,16 @@
 let defAccount = 0;
 
+window.onload = function () {
+  const accounts = document.getElementById("accounts_button");
+  accounts.onclick = function (event) {
+    openPage(event, "Accounts");
+  };
+  document.getElementById("rules_button").onclick = function (event) {
+    openPage(event, "Rules");
+  };
+  accounts.click();
+};
+
 function signIn(email) {
   // A builder that returns a function to set the url to allow the user to log in to a signed out account
   return (responses) => {
