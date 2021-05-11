@@ -3,6 +3,7 @@ function setupUI() {
     const allServices = allSupportedGoogleServices();
     const rulesUrls = data.rules.map((r) => r.serviceUrl);
     let services = allServices.filter((s) => rulesUrls.indexOf(s.url) === -1);
+    services.sort((a, b) => a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1);
     allAccounts((data) => {
       renderAddNewRule(services, data.accounts);
     });
