@@ -1,4 +1,5 @@
 let defaultAccount = 0;
+let rules = [];
 
 chrome.runtime.onInstalled.addListener(() => {
   SyncStorage.store({ defaultAccount });
@@ -9,9 +10,16 @@ SyncStorage.get("defaultAccount", (data) => {
   defaultAccount = data.defaultAccount ?? 0;
 });
 
+SyncStorage.get("rules", (data) => {
+  rules = data.rules ?? [];
+});
+
 chrome.storage.onChanged.addListener(function (changes, namespace) {
   if ("defaultAccount" in changes) {
     defaultAccount = changes["defaultAccount"].newValue;
+  }
+  if ("rules" in changes) {
+    rules = changes["rules"].newValue;
   }
 });
 
@@ -52,7 +60,9 @@ chrome.webRequest.onBeforeRequest.addListener(
       details.url.toLowerCase().indexOf("authuser") < 0 &&
       !/https?:\/\/.*\.google\.co.*\/u\/\d+/i.test(details.url)
     ) {
-      const redirectUrl = convertToRedirectUrl(details.url, defaultAccount);
+      const accountId =
+        getAccountForService(details.url, rules) ?? defaultAccount;
+      const redirectUrl = convertToRedirectUrl(details.url, accountId);
       if (redirectUrl) {
         console.log("webRequest.onBeforeRequest, redirectUrl: ", redirectUrl);
         return { redirectUrl };

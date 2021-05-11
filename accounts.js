@@ -60,7 +60,9 @@ function renderAccounts(accounts, defaultAccount) {
 
     let nameDiv = document.createElement("div");
     nameDiv.classList.add("name");
-    nameDiv.appendChild(document.createTextNode(user.name));
+    nameDiv.appendChild(
+      document.createTextNode(`${user.index + 1}) ${user.name}`)
+    );
     topDiv.appendChild(nameDiv);
 
     let emailDiv = document.createElement("div");
@@ -112,17 +114,6 @@ SyncStorage.get(["accounts", "defaultAccount"], (data) => {
   }
   chrome.runtime.sendMessage("fetch_google_accounts", populate);
 });
-
-window.onload = function () {
-  const accounts = document.getElementById("accounts_button");
-  accounts.onclick = function (event) {
-    openPage(event, "Accounts");
-  };
-  document.getElementById("rules_button").onclick = function (event) {
-    openPage(event, "Rules");
-  };
-  accounts.click();
-};
 
 function openPage(evt, name) {
   // Declare all variables
