@@ -55,11 +55,9 @@ function renderAddNewRule(services, accounts) {
     const serviceValue = JSON.parse(
       servicePicker.options[servicePicker.selectedIndex].value
     );
-    console.log(serviceValue);
     const serviceName = serviceValue.name;
     const serviceUrl = serviceValue.url;
     const serviceImg = serviceValue.img;
-    console.log(serviceName, serviceUrl, serviceImg);
 
     const accountValue = JSON.parse(
       accountPicker.options[accountPicker.selectedIndex].value
@@ -131,7 +129,6 @@ function getRules(callback) {
 }
 
 function addRule(rule, callback) {
-  console.log(rule);
   SyncStorage.get("rules", (data) => {
     data.rules.push(rule);
     SyncStorage.store({ rules: data.rules }, callback);

@@ -115,17 +115,6 @@ SyncStorage.get(["accounts", "defaultAccount"], (data) => {
   chrome.runtime.sendMessage("fetch_google_accounts", populate);
 });
 
-window.onload = function () {
-  const accounts = document.getElementById("accounts_button");
-  accounts.onclick = function (event) {
-    openPage(event, "Accounts");
-  };
-  document.getElementById("rules_button").onclick = function (event) {
-    openPage(event, "Rules");
-  };
-  accounts.click();
-};
-
 function openPage(evt, name) {
   // Declare all variables
   let i, tabcontent, tablinks;

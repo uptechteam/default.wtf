@@ -169,3 +169,14 @@ class SyncStorage {
     chrome.storage.sync.get(key, callback);
   }
 }
+
+window.onload = function () {
+  const accounts = document.getElementById("accounts_button");
+  accounts.onclick = function (event) {
+    openPage(event, "Accounts");
+  };
+  document.getElementById("rules_button").onclick = function (event) {
+    openPage(event, "Rules");
+  };
+  accounts.click();
+};
