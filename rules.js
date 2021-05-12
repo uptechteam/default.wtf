@@ -3,7 +3,9 @@ function setupUI() {
     const allServices = allSupportedGoogleServices();
     const rulesUrls = data.rules.map((r) => r.serviceUrl);
     let services = allServices.filter((s) => rulesUrls.indexOf(s.url) === -1);
-    services.sort((a, b) => a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1);
+    services.sort((a, b) =>
+      a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1
+    );
     allAccounts((data) => {
       renderAddNewRule(services, data.accounts);
     });
@@ -80,41 +82,24 @@ function renderRulesList(rules) {
   const rulesBodyDiv = document.getElementById("rules_body");
   rulesBodyDiv.innerHTML = "";
   for (const rule of rules) {
-    let a = document.createElement("a");
-    a.classList.add("topA");
+    const t = document.getElementById("cell_template").content;
+    const cellContent = document.importNode(t, true);
+    cellContent.querySelector(".cell_image").src =
+      rule.serviceImg ?? "./images/logos/google.png";
+    cellContent.querySelector(".cell_title").textContent = rule.serviceUrl;
+    cellContent.querySelector(".cell_description").textContent =
+      rule.accountEmail;
 
-    let topDiv = document.createElement("div");
-    topDiv.classList.add("top");
-
-    let img = document.createElement("img");
-    img.classList.add("img");
-    img.src = rule.serviceImg ?? "./images/logos/google.png";
-    a.appendChild(img);
-
-    let nameDiv = document.createElement("div");
-    nameDiv.classList.add("name");
-    nameDiv.appendChild(document.createTextNode(rule.serviceUrl)); // Name
-    topDiv.appendChild(nameDiv);
-
-    let emailDiv = document.createElement("div");
-    emailDiv.classList.add("email");
-    emailDiv.appendChild(document.createTextNode(rule.accountEmail)); // Email
-    topDiv.appendChild(emailDiv);
-    a.appendChild(topDiv);
-
-    let cornerDiv = document.createElement("div");
-    cornerDiv.classList.add("corner");
+    const cornerDiv = cellContent.querySelector(".cell_corner");
     let button = document.createElement("button");
-    button.appendChild(document.createTextNode("Delete"));
+    button.textContent = "Delete";
     button.onclick = function () {
       deleteRule(rule.serviceUrl, function () {
         setupUI();
       });
     };
     cornerDiv.appendChild(button);
-    a.appendChild(cornerDiv);
-
-    rulesBodyDiv.appendChild(a);
+    rulesBodyDiv.appendChild(cellContent);
   }
 }
 
