@@ -67,7 +67,7 @@ function renderAccounts(accounts, defaultAccount) {
 
     if (!user.isLoggedIn) {
       cellContent.querySelector(".cell_corner").textContent = "Signed out";
-      cellContent.addEventListener("click", () => {
+      cellContent.querySelector(".cell_body").addEventListener("click", () => {
         chrome.tabs.query(
           { active: true, currentWindow: true },
           signIn(info[3])
@@ -77,12 +77,15 @@ function renderAccounts(accounts, defaultAccount) {
       if (user.index === defaultAccount) {
         cellContent.querySelector(".cell_corner").textContent = "Selected";
       }
-      cellContent.addEventListener("click", async () => {
-        SyncStorage.store({ defaultAccount: user.index }, function () {
-          redirectCurrectTab(user.index);
-          window.close();
+      cellContent
+        .querySelector(".cell_body")
+        .addEventListener("click", async () => {
+          console.log("click");
+          SyncStorage.store({ defaultAccount: user.index }, function () {
+            redirectCurrectTab(user.index);
+            window.close();
+          });
         });
-      });
     }
     accountsBody.appendChild(cellContent);
   });

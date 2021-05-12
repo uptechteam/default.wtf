@@ -8,7 +8,7 @@ body {
 }
 /* Parts of the following code comes (mostly) directly from Google's own calculated (not source) styles, for hopeful consistency, with some removed bloat and the exclusion of copyrighted resources like Google Sans. I then adjusted the styles to use new flex-box positioning to solve some issues with resizing. */
 
-.topA {
+.cell_body {
   font: 13px/27px Roboto, RobotoDraft, Arial, sans-serif;
   line-height: normal;
   font-family: "Segoe UI", "Roboto", arial, sans-serif;
@@ -71,17 +71,17 @@ body {
   flex-grow: 1;
 }
 
-.topA:active,
-.topA:focus:active {
+.cell_body:active,
+.cell_body:focus:active {
   background-color: #e8e8e9;
 }
 
-.topA:focus,
-.topA:hover:focus {
+.cell_body:focus,
+.cell_body:hover:focus {
   background-color: #f4f4f4;
 }
 
-.topA:hover {
+.cell_body:hover {
   background-color: #f7f8f8;
 }
 /* Style the tab */
