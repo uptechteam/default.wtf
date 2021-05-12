@@ -81,16 +81,14 @@ chrome.tabs.onCreated.addListener((tab) => {
   if (tab.openerTabId) {
     chrome.tabs.get(tab.openerTabId, (openerTab) => {
       if (openerTab && isAnyGoogleUrl(openerTab.url)) return;
-      const accountId =
-        getAccountForService(openerTab.url, rules) ?? defaultAccount;
+      const accountId = getAccountForService(url, rules) ?? defaultAccount;
       const redirectUrl = convertToRedirectUrl(url, accountId);
       if (redirectUrl) {
         chrome.tabs.update(tab.id, { url: redirectUrl });
       }
     });
   } else {
-    const accountId =
-      getAccountForService(openerTab.url, rules) ?? defaultAccount;
+    const accountId = getAccountForService(url, rules) ?? defaultAccount;
     const redirectUrl = convertToRedirectUrl(url, accountId);
     if (redirectUrl) {
       chrome.tabs.update(tab.id, { url: redirectUrl });
