@@ -57,63 +57,34 @@ function renderAccounts(accounts, defaultAccount) {
   const accountsBody = document.getElementById("accounts_body");
   accountsBody.innerHTML = ""; // to remove all children, if any
   accounts.forEach((user) => {
-    // There is useless info in response[0]; response[1] has the accounts
-    let a = document.createElement("a");
-    a.classList.add("topA");
-
-    let img = document.createElement("img");
-    img.classList.add("img");
-    img.src = user.profileUrl;
-    a.appendChild(img);
-
-    let topDiv = document.createElement("div");
-    topDiv.classList.add("top");
-
-    let nameDiv = document.createElement("div");
-    nameDiv.classList.add("name");
-    nameDiv.appendChild(
-      document.createTextNode(`${user.index + 1}) ${user.name}`)
-    );
-    topDiv.appendChild(nameDiv);
-
-    let emailDiv = document.createElement("div");
-    emailDiv.classList.add("email");
-    emailDiv.appendChild(document.createTextNode(user.email)); // Email
-    topDiv.appendChild(emailDiv);
-
-    a.appendChild(topDiv);
+    const t = document.getElementById("cell_template").content;
+    const cellContent = document.importNode(t, true);
+    cellContent.querySelector(".cell_image").src = user.profileUrl;
+    cellContent.querySelector(".cell_title").textContent = `${
+      user.index + 1
+    }) ${user.name}`;
+    cellContent.querySelector(".cell_description").textContent = user.email;
 
     if (!user.isLoggedIn) {
-      let cornerDiv = document.createElement("div");
-      cornerDiv.classList.add("corner");
-      cornerDiv.appendChild(document.createTextNode("Signed out"));
-      a.appendChild(cornerDiv);
-      a.addEventListener("click", () => {
+      cellContent.querySelector(".cell_corner").textContent = "Signed out";
+      cellContent.addEventListener("click", () => {
         chrome.tabs.query(
-          {
-            // Get current tab
-            active: true,
-            currentWindow: true,
-          },
+          { active: true, currentWindow: true },
           signIn(info[3])
-        ); // Navigate to signin
+        );
       });
     } else {
       if (user.index === defaultAccount) {
-        // Account index (pretty sure)
-        let cornerDiv = document.createElement("div");
-        cornerDiv.classList.add("corner");
-        cornerDiv.appendChild(document.createTextNode("Selected"));
-        a.appendChild(cornerDiv);
+        cellContent.querySelector(".cell_corner").textContent = "Selected";
       }
-      a.addEventListener("click", async () => {
+      cellContent.addEventListener("click", async () => {
         SyncStorage.store({ defaultAccount: user.index }, function () {
           redirectCurrectTab(user.index);
           window.close();
         });
       });
     }
-    accountsBody.appendChild(a);
+    accountsBody.appendChild(cellContent);
   });
 }
 
