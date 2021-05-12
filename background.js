@@ -1,11 +1,6 @@
 let defaultAccount = 0;
 let rules = [];
 
-chrome.runtime.onInstalled.addListener(() => {
-  SyncStorage.store({ defaultAccount });
-  SyncStorage.store({ rules: [] });
-});
-
 SyncStorage.get("defaultAccount", (data) => {
   defaultAccount = data.defaultAccount ?? 0;
 });
@@ -86,13 +81,17 @@ chrome.tabs.onCreated.addListener((tab) => {
   if (tab.openerTabId) {
     chrome.tabs.get(tab.openerTabId, (openerTab) => {
       if (openerTab && isAnyGoogleUrl(openerTab.url)) return;
-      const redirectUrl = convertToRedirectUrl(url, defaultAccount);
+      const accountId =
+        getAccountForService(openerTab.url, rules) ?? defaultAccount;
+      const redirectUrl = convertToRedirectUrl(url, accountId);
       if (redirectUrl) {
         chrome.tabs.update(tab.id, { url: redirectUrl });
       }
     });
   } else {
-    const redirectUrl = convertToRedirectUrl(url, defaultAccount);
+    const accountId =
+      getAccountForService(openerTab.url, rules) ?? defaultAccount;
+    const redirectUrl = convertToRedirectUrl(url, accountId);
     if (redirectUrl) {
       chrome.tabs.update(tab.id, { url: redirectUrl });
     }
