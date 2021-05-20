@@ -60,9 +60,13 @@ function renderAccounts(accounts, defaultAccount) {
     const t = document.getElementById("cell_template").content;
     const cellContent = document.importNode(t, true);
     cellContent.querySelector(".cell_image").src = user.profileUrl;
-    cellContent.querySelector(".cell_title").textContent = `${
-      user.index + 1
-    }) ${user.name}`;
+    let title;
+    if (user.isLoggedIn) {
+      title = `${user.index + 1}) ${user.name}`;
+    } else {
+      title = user.name;
+    }
+    cellContent.querySelector(".cell_title").textContent = title;
     cellContent.querySelector(".cell_description").textContent = user.email;
 
     if (!user.isLoggedIn) {
