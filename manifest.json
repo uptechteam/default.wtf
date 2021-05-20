@@ -1,7 +1,7 @@
 {
   "name": "Default Google Account",
   "description": "Select and manage your default account for Google Meet, Gmail, Google Calendar, or any other Google Service.",
-  "version": "1.1",
+  "version": "1.2",
   "manifest_version": 2,
   "minimum_chrome_version": "40",
   "browser_action": {
