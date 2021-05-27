@@ -1,6 +1,6 @@
 // Full list of Google Services subdomains - https://gist.github.com/abuvanth/b9fcbaf7c77c2954f96c6e556138ffe8
 function isGoogleServiceUrl(url) {
-  return /^https?:\/\/[^?&]*(?:mail|drive|calendar|meet|docs|admin|photos|translate|keep|hangouts|chat|workspace|maps|news|ads|ediscovery|jamboard|earth|podcasts|classroom|business|myaccount|adsense|cloud|adwords|analytics)\.google\.co.*/i.test(
+  return /^https?:\/\/[^?&]*(?:mail|drive|calendar|meet|docs|admin|photos|translate|keep|hangouts|chat|workspace|maps|news|ads|ediscovery|jamboard|earth|podcasts|classroom|business|myaccount|adsense|cloud|adwords|analytics|firebase)\.google\.co.*/i.test(
     url
   );
 }
@@ -89,6 +89,7 @@ function allSupportedGoogleServices() {
     {
       name: "Admin",
       url: "admin.google.com",
+      img: "./images/logos/admin.png",
     },
     {
       name: "Photos",
@@ -98,18 +99,22 @@ function allSupportedGoogleServices() {
     {
       name: "Translate",
       url: "translate.google.com",
+      img: "./images/logos/translate.png",
     },
     {
       name: "Keep",
       url: "keep.google.com",
+      img: "./images/logos/keep.png",
     },
     {
       name: "Hangouts",
       url: "hangouts.google.com",
+      img: "./images/logos/hangouts.png",
     },
     {
       name: "Chat",
       url: "chat.google.com",
+      img: "./images/logos/chat.png",
     },
     {
       name: "Workspace",
@@ -118,18 +123,22 @@ function allSupportedGoogleServices() {
     {
       name: "News",
       url: "news.google.com",
+      img: "./images/logos/news.png",
     },
     {
       name: "Ads",
       url: "ads.google.com",
+      img: "./images/logos/ads.png",
     },
     {
-      name: "Ediscovery",
+      name: "Ediscovery (Vault)",
       url: "ediscovery.google.com",
+      img: "./images/logos/ediscovery.png",
     },
     {
       name: "Jamboard",
       url: "jamboard.google.com",
+      img: "./images/logos/jamboard.png",
     },
     {
       name: "Earth",
@@ -144,6 +153,7 @@ function allSupportedGoogleServices() {
     {
       name: "Classroom",
       url: "classroom.google.com",
+      img: "./images/logos/classroom.png",
     },
     {
       name: "Business",
@@ -157,10 +167,12 @@ function allSupportedGoogleServices() {
     {
       name: "Adsense",
       url: "adsense.google.com",
+      img: "./images/logos/adsense.png",
     },
     {
       name: "Adwords",
       url: "adwords.google.com",
+      img: "./images/logos/ads.png",
     },
     {
       name: "Cloud",
@@ -171,6 +183,11 @@ function allSupportedGoogleServices() {
       name: "Analytics",
       url: "analytics.google.com",
       img: "./images/logos/analytics.png",
+    },
+    {
+      name: "Firebase",
+      url: "firebase.google.com",
+      img: "./images/logos/firebase.png",
     },
   ];
 }
