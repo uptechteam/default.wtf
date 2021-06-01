@@ -2,41 +2,68 @@
 <body class="body">
   <link rel="stylesheet" href="styles.css" />
   <script src="utils.js"></script>
-  <!-- Tab links -->
-  <div class="tab" width="360px">
-    <button class="tablinks" id="accounts_button">Default account</button>
-    <button class="tablinks" id="rules_button">Rules</button>
-  </div>
-  <!-- Tab content -->
-  <div id="Rules" class="tabcontent">
-    <h3>Set account for specific Google service</h3>
-    <div id="service_picker_div"></div>
-    <div style="margin-top: 10px" id="account_picker_div"></div>
-    <div
-      style="margin-top: 15px; margin-bottom: 20px"
-      id="action_button_div"
-    ></div>
-    <div style="border-top: 1px solid black">
-      <h3>Active rules</h3>
-      <div id="rules_body">
-        <script src="rules.js"></script>
+  <header>
+    <img src="images/logo.svg" alt="Default Google Account" /> Default Google
+    Account
+  </header>
+  <section class="content">
+    <!-- Tab links -->
+    <div class="tab" width="360px">
+      <button class="tablinks" id="accounts_button">Default account</button>
+      <button class="tablinks" id="rules_button">Rules</button>
+    </div>
+    <!-- Tab content -->
+    <div id="Rules" class="tabcontent">
+      <h3>Set account for specific Google service</h3>
+      <div id="service-picker-container" class="picker-container"></div>
+      <div
+        style="margin-top: 10px"
+        id="account-picker-container"
+        class="picker-container"
+      ></div>
+      <div
+        style="margin-bottom: 20px"
+        id="action-button-div"
+        class="action-button"
+      >
+        <svg
+          width="10"
+          height="6"
+          viewBox="0 0 10 6"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M1 1L4.94343 4.94343C4.97467 4.97467 5.02533 4.97467 5.05657 4.94343L9 1"
+            stroke="#2B2337"
+            stroke-width="2"
+            stroke-linecap="round"
+          />
+        </svg>
+      </div>
+      <div class="hr"></div>
+      <div>
+        <h3>Active rules</h3>
+        <div id="rules-body">
+          <script src="rules.js"></script>
+        </div>
       </div>
     </div>
-  </div>
-  <div id="Accounts" class="tabcontent">
-    <h3>Select a default account for all google services</h3>
-    <div id="accounts_body">
-      <script src="accounts.js"></script>
-    </div>
-  </div>
-  <template id=cell_template>
-    <a class="cell_body">
-      <img class="cell_image"></img>
-      <div class="top">
-        <div class="cell_title"></div>
-        <div class="cell_description"></div>
+    <div id="Accounts" class="tabcontent">
+      <h3>Select a default account for all Google services</h3>
+      <div id="accounts_body">
+        <script src="accounts.js"></script>
       </div>
-      <div class="cell_corner"></div>
-    </a>
-  </template>
+    </div>
+    <template id="cell_template">
+      <a class="cell-body">
+        <img class="cell-image" />
+        <div class="top">
+          <div class="cell-title"></div>
+          <div class="cell-description"></div>
+        </div>
+        <div class="cell-corner"></div>
+      </a>
+    </template>
+  </section>
 </body>

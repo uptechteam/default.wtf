@@ -50,28 +50,37 @@ function populate(response) {
     isLoggedIn: info.length >= 16, // If the account is signed in (as far as I know)
   }));
   SyncStorage.store({ accounts });
+  renderNumberOfAccounts(accounts);
   renderAccounts(accounts, defAccount); // re-render accounts that arrived
+}
+
+function renderNumberOfAccounts(accounts) {
+  const accountButton = document.getElementById("accounts_button");
+  const numberOfAccounts = document.createElement("span");
+  numberOfAccounts.innerHTML = ` (${accounts.length})`;
+  accountButton.appendChild(numberOfAccounts);
 }
 
 function renderAccounts(accounts, defaultAccount) {
   const accountsBody = document.getElementById("accounts_body");
   accountsBody.innerHTML = ""; // to remove all children, if any
+
   accounts.forEach((user) => {
     const t = document.getElementById("cell_template").content;
     const cellContent = document.importNode(t, true);
-    cellContent.querySelector(".cell_image").src = user.profileUrl;
+    cellContent.querySelector(".cell-image").src = user.profileUrl;
     let title;
     if (user.isLoggedIn) {
       title = `${user.index + 1}) ${user.name}`;
     } else {
       title = user.name;
     }
-    cellContent.querySelector(".cell_title").textContent = title;
-    cellContent.querySelector(".cell_description").textContent = user.email;
+    cellContent.querySelector(".cell-title").textContent = title;
+    cellContent.querySelector(".cell-description").textContent = user.email;
 
     if (!user.isLoggedIn) {
-      cellContent.querySelector(".cell_corner").textContent = "Signed out";
-      cellContent.querySelector(".cell_body").addEventListener("click", () => {
+      cellContent.querySelector(".cell-corner").textContent = "Signed out";
+      cellContent.querySelector(".cell-body").addEventListener("click", () => {
         chrome.tabs.query(
           { active: true, currentWindow: true },
           signIn(info[3])
@@ -79,10 +88,12 @@ function renderAccounts(accounts, defaultAccount) {
       });
     } else {
       if (user.index === defaultAccount) {
-        cellContent.querySelector(".cell_corner").textContent = "Selected";
+        const checkedImage = document.createElement("img");
+        checkedImage.src = "images/checked.svg";
+        cellContent.querySelector(".cell-corner").appendChild(checkedImage);
       }
       cellContent
-        .querySelector(".cell_body")
+        .querySelector(".cell-body")
         .addEventListener("click", async () => {
           console.log("click");
           SyncStorage.store({ defaultAccount: user.index }, function () {
