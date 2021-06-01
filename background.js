@@ -2,7 +2,7 @@ let defaultAccount = 0;
 let rules = [];
 
 chrome.runtime.onInstalled.addListener(function (details) {
-  if(details.reason == "install"){
+  if (details.reason == "install") {
     SyncStorage.get("rules", (data) => {
       if (data.rules === undefined) {
         SyncStorage.store({ rules: [] });

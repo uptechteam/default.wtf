@@ -34,7 +34,7 @@ function renderAddNewRule(services, accounts) {
   servicePickerDiv.appendChild(serviceLabel);
   for (const service of services) {
     const opt = document.createElement("option");
-    opt.appendChild(document.createTextNode(service.name));
+    opt.appendChild(document.createTextNode(service.title));
     opt.value = JSON.stringify(service);
     servicePicker.appendChild(opt);
   }
@@ -73,6 +73,7 @@ function renderAddNewRule(services, accounts) {
       servicePicker.options[servicePicker.selectedIndex].value
     );
     const serviceName = serviceValue.name;
+    const serviceTitle = serviceValue.title;
     const serviceUrl = serviceValue.url;
     const serviceImg = serviceValue.img;
 
@@ -83,7 +84,14 @@ function renderAddNewRule(services, accounts) {
     const accountEmail = accountValue.email;
 
     addRule(
-      { serviceName, serviceUrl, serviceImg, accountEmail, accountId },
+      {
+        serviceName,
+        serviceTitle,
+        serviceUrl,
+        serviceImg,
+        accountEmail,
+        accountId,
+      },
       function () {
         setupUI();
       }
