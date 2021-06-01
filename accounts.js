@@ -50,12 +50,21 @@ function populate(response) {
     isLoggedIn: info.length >= 16, // If the account is signed in (as far as I know)
   }));
   SyncStorage.store({ accounts });
+  renderNumberOfAccounts(accounts);
   renderAccounts(accounts, defAccount); // re-render accounts that arrived
+}
+
+function renderNumberOfAccounts(accounts) {
+  const accountButton = document.getElementById("accounts_button");
+  const numberOfAccounts = document.createElement("span");
+  numberOfAccounts.innerHTML = ` (${accounts.length})`;
+  accountButton.appendChild(numberOfAccounts);
 }
 
 function renderAccounts(accounts, defaultAccount) {
   const accountsBody = document.getElementById("accounts_body");
   accountsBody.innerHTML = ""; // to remove all children, if any
+
   accounts.forEach((user) => {
     const t = document.getElementById("cell_template").content;
     const cellContent = document.importNode(t, true);

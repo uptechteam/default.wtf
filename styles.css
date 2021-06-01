@@ -7,6 +7,7 @@
   --color-title: #2b2337;
   --color-bg: #ffffff;
   --color-header-border: #f0f0f0;
+  --color-delete-bg: #f5f5f5;
 }
 
 /* colors for the dark mode */
@@ -19,6 +20,7 @@
     --color-title: #ffffff;
     --color-bg: #2b2437;
     --color-header-border: #433c4d;
+    --color-delete-bg: #fff;
   }
 
   .picker-container img {
@@ -34,6 +36,7 @@ html {
 body {
   overflow: hidden;
   margin: 0;
+  background-color: var(--color-bg);
 }
 
 /* Parts of the following code comes (mostly) directly from Google's own calculated (not source) styles, for hopeful consistency, with some removed bloat and the exclusion of copyrighted resources like Google Sans. I then adjusted the styles to use new flex-box positioning to solve some issues with resizing. */
@@ -239,7 +242,7 @@ header img {
   border-radius: 100px;
   width: 278px;
   height: 46px;
-  margin: 20px;
+  margin: 4px 20px 12px 20px;
   font-weight: 900;
   font-size: 11px;
   line-height: 18px;
@@ -259,6 +262,10 @@ header img {
   background-color: transparent;
   height: 24px;
   width: 24px;
+}
+
+.cell-delete circle {
+  fill: var(--color-delete-bg);
 }
 
 .cell-delete:hover circle {
