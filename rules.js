@@ -1,15 +1,17 @@
 function setupUI() {
   getRules((data) => {
+    const rules = data.rules ?? [];
     const allServices = allSupportedGoogleServices();
-    const rulesUrls = data.rules.map((r) => r.serviceUrl);
+    const rulesUrls = rules.map((r) => r.serviceUrl);
     let services = allServices.filter((s) => rulesUrls.indexOf(s.url) === -1);
     services.sort((a, b) =>
       a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1
     );
     allAccounts((data) => {
-      renderAddNewRule(services, data.accounts);
+      const accounts = data.accounts ?? [];
+      renderAddNewRule(services, accounts);
     });
-    renderRulesList(data.rules);
+    renderRulesList(rules);
   });
 }
 
@@ -128,7 +130,7 @@ function renderRulesList(rules) {
 
 function deleteRule(serviceUrl, callback) {
   getRules((data) => {
-    const rules = data.rules.filter((r) => r.serviceUrl !== serviceUrl);
+    const rules = (data.rules ?? []).filter((r) => r.serviceUrl !== serviceUrl);
     SyncStorage.store({ rules }, callback);
   });
 }
@@ -139,8 +141,9 @@ function getRules(callback) {
 
 function addRule(rule, callback) {
   SyncStorage.get("rules", (data) => {
-    data.rules.push(rule);
-    SyncStorage.store({ rules: data.rules }, callback);
+    const rules = data.rules ?? [];
+    rules.push(rule);
+    SyncStorage.store({ rules }, callback);
   });
 }
 

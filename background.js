@@ -2,16 +2,18 @@ let defaultAccount = 0;
 let rules = [];
 
 chrome.runtime.onInstalled.addListener(function (details) {
-  SyncStorage.get("rules", (data) => {
-    if (data.rules === undefined) {
-      SyncStorage.store({ rules: [] });
-    }
-  });
-  SyncStorage.get("defaultAccount", (data) => {
-    if (data.defaultAccount === undefined) {
-      SyncStorage.store({ defaultAccount: 0 });
-    }
-  });
+  if(details.reason == "install"){
+    SyncStorage.get("rules", (data) => {
+      if (data.rules === undefined) {
+        SyncStorage.store({ rules: [] });
+      }
+    });
+    SyncStorage.get("defaultAccount", (data) => {
+      if (data.defaultAccount === undefined) {
+        SyncStorage.store({ defaultAccount: 0 });
+      }
+    });
+  }
 });
 
 SyncStorage.get("defaultAccount", (data) => {
