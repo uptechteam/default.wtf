@@ -13,6 +13,12 @@ function setupUI() {
   });
 }
 
+chrome.storage.onChanged.addListener(function (changes, namespace) {
+  if ("accounts" in changes) {
+    setupUI();
+  }
+});
+
 function renderAddNewRule(services, accounts) {
   const servicePickerDiv = document.getElementById("service-picker-container");
   servicePickerDiv.innerHTML = "";
