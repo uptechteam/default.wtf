@@ -59,19 +59,19 @@ function renderAccounts(accounts, defaultAccount) {
   accounts.forEach((user) => {
     const t = document.getElementById("cell_template").content;
     const cellContent = document.importNode(t, true);
-    cellContent.querySelector(".cell_image").src = user.profileUrl;
+    cellContent.querySelector(".cell-image").src = user.profileUrl;
     let title;
     if (user.isLoggedIn) {
       title = `${user.index + 1}) ${user.name}`;
     } else {
       title = user.name;
     }
-    cellContent.querySelector(".cell_title").textContent = title;
-    cellContent.querySelector(".cell_description").textContent = user.email;
+    cellContent.querySelector(".cell-title").textContent = title;
+    cellContent.querySelector(".cell-description").textContent = user.email;
 
     if (!user.isLoggedIn) {
-      cellContent.querySelector(".cell_corner").textContent = "Signed out";
-      cellContent.querySelector(".cell_body").addEventListener("click", () => {
+      cellContent.querySelector(".cell-corner").textContent = "Signed out";
+      cellContent.querySelector(".cell-body").addEventListener("click", () => {
         chrome.tabs.query(
           { active: true, currentWindow: true },
           signIn(info[3])
@@ -79,10 +79,12 @@ function renderAccounts(accounts, defaultAccount) {
       });
     } else {
       if (user.index === defaultAccount) {
-        cellContent.querySelector(".cell_corner").textContent = "Selected";
+        const checkedImage = document.createElement("img");
+        checkedImage.src = "images/checked.svg";
+        cellContent.querySelector(".cell-corner").appendChild(checkedImage);
       }
       cellContent
-        .querySelector(".cell_body")
+        .querySelector(".cell-body")
         .addEventListener("click", async () => {
           console.log("click");
           SyncStorage.store({ defaultAccount: user.index }, function () {

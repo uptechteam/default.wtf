@@ -1,3 +1,32 @@
+/* create color variables */
+:root {
+  --color-gray: #8b8792;
+  --color-orange: #d66d58;
+  --color-orange-hover: #f9f4f3;
+  --color-header-bg: #f9f9f9;
+  --color-title: #2b2337;
+  --color-bg: #ffffff;
+  --color-header-border: #f0f0f0;
+}
+
+/* colors for the dark mode */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-gray: #8b8792;
+    --color-orange: #d66d58;
+    --color-orange-hover: #332c3f;
+    --color-header-bg: #312a3d;
+    --color-title: #ffffff;
+    --color-bg: #2b2437;
+    --color-header-border: #433c4d;
+  }
+
+  .picker-container img {
+    /* change color select arrow */
+    filter: invert(100%);
+  }
+}
+
 html {
   overflow: hidden;
 }
@@ -6,9 +35,43 @@ body {
   overflow: hidden;
   margin: 0;
 }
-/* Parts of the following code comes (mostly) directly from Google's own calculated (not source) styles, for hopeful consistency, with some removed bloat and the exclusion of copyrighted resources like Google Sans. I then adjusted the styles to use new flex-box positioning to solve some issues with resizing. */
 
-.cell_body {
+/* Parts of the following code comes (mostly) directly from Google's own calculated (not source) styles, for hopeful consistency, with some removed bloat and the exclusion of copyrighted resources like Google Sans. I then adjusted the styles to use new flex-box positioning to solve some issues with resizing. */
+button {
+  border: none;
+  outline: none;
+  cursor: pointer;
+}
+
+select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  position: relative;
+  outline: none;
+}
+
+header {
+  background-color: var(--color-header-bg);
+  border-bottom: 1px solid var(--color-header-border);
+  height: 48px;
+  padding-left: 17px;
+  display: flex;
+  align-items: center;
+  font-weight: bold;
+  font-size: 14px;
+  line-height: 18px;
+  color: var(--color-title);
+}
+
+header img {
+  margin-right: 8px;
+}
+
+.content {
+  background-color: var(--color-bg);
+}
+
+.cell-body {
   font: 13px/27px Roboto, RobotoDraft, Arial, sans-serif;
   line-height: normal;
   font-family: "Segoe UI", "Roboto", arial, sans-serif;
@@ -19,13 +82,15 @@ body {
   cursor: pointer;
   height: 35px;
   outline: 0;
-  padding: 12px;
+  padding: 12px 20px;
   border-top: 0;
   display: flex;
   flex-direction: row;
+  align-items: center;
+  position: relative;
 }
 
-.cell_image {
+.cell-image {
   border-radius: 50%;
   overflow: hidden;
   border: none;
@@ -44,10 +109,9 @@ body {
   min-width: 0;
 }
 
-.cell_title {
-  color: #3c4043;
-  font: 500 14px/18px Roboto, RobotoDraft, Helvetica, Arial, sans-serif;
-  letter-spacing: 0.25px;
+.cell-title {
+  font: bold 14px/18px Roboto, RobotoDraft, Helvetica, Arial, sans-serif;
+  color: var(--color-title);
 }
 
 .serviceName {
@@ -57,38 +121,24 @@ body {
   text-align: inherit;
 }
 
-.cell_description {
-  color: #5f6368;
+.cell-description {
+  color: #88848f;
   font: 400 12px / 16px Roboto, RobotoDraft, Helvetica, Arial, sans-serif;
 }
 
-.cell_corner {
-  color: #5d6369;
-  font: italic 400 12px/14px Roboto, RobotoDraft, Helvetica, Arial, sans-serif;
-  padding: 10px 10px 10px 30px;
-  text-align: right;
-  font-family: Roboto, Arial, sans-serif !important;
-  flex-grow: 1;
+.cell-corner {
+  position: absolute;
+  right: 20px;
 }
 
-.cell_body:active,
-.cell_body:focus:active {
-  background-color: #e8e8e9;
-}
-
-.cell_body:focus,
-.cell_body:hover:focus {
-  background-color: #f4f4f4;
-}
-
-.cell_body:hover {
-  background-color: #f7f8f8;
+/* .cell-body:active, */
+/* .cell-body:focus, */
+.cell-body:hover {
+  background-color: var(--color-orange-hover);
 }
 /* Style the tab */
 .tab {
   overflow: hidden;
-  border: 1px solid #ccc;
-  background-color: #f1f1f1;
   width: 100%;
 }
 
@@ -96,37 +146,51 @@ body {
 .tab button {
   background-color: inherit;
   float: left;
-  border: none;
-  outline: none;
-  cursor: pointer;
+  text-transform: uppercase;
   padding: 14px 16px;
-  transition: 0.3s;
+  transition: all 0.2s linear;
   width: 50%;
-  font: 400 14px/18px Roboto, RobotoDraft, Helvetica, Arial, sans-serif;
+  color: var(--color-gray);
+  font: 900 11px/18px Roboto, RobotoDraft, Helvetica, Arial, sans-serif;
+  height: 54px;
 }
 
 /* Change background color of buttons on hover */
 .tab button:hover {
-  background-color: #ddd;
+  background-color: var(--color-orange-hover);
 }
 
 /* Create an active/current tablink class */
 .tab button.active {
-  font: 800 14px/18px Roboto, RobotoDraft, Helvetica, Arial, sans-serif;
-  background-color: #ccc;
+  color: var(--color-orange);
+  position: relative;
+}
+
+.tab button.active::before {
+  position: absolute;
+  content: "";
+  height: 4px;
+  width: 100%;
+  top: 0;
+  left: 0;
+  background-color: var(--color-orange);
+  animation: fadeEffect 0.5s; /* Fading effect takes 1 second */
 }
 
 /* Style the tab content */
 .tabcontent {
   display: none;
-  padding: 6px 12px;
-  border: 1px solid #ccc;
-  border-top: none;
   min-width: 328px;
+  padding-bottom: 20px;
+  animation: fadeEffect 1s; /* Fading effect takes 1 second */
 }
 
-.tabcontent {
-  animation: fadeEffect 1s; /* Fading effect takes 1 second */
+.tabcontent h3 {
+  color: var(--color-title);
+  font-weight: bold;
+  font-size: 16px;
+  line-height: 22px;
+  margin: 24px 20px;
 }
 
 /* Go from zero to full opacity */
@@ -137,4 +201,74 @@ body {
   to {
     opacity: 1;
   }
+}
+
+.picker-container {
+  display: flex;
+  flex-direction: column;
+  padding: 0 20px;
+  font-size: 14px;
+  line-height: 18px;
+  color: var(--color-title);
+  font-weight: 600;
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.picker-container select {
+  background: var(--color-orange-hover);
+  color: var(--color-title);
+  border-radius: 100px;
+  text-indent: 20px;
+  height: 42px;
+  border: none;
+}
+
+.picker-container label {
+  margin-bottom: 10px;
+}
+
+.picker-container img {
+  position: absolute;
+  right: 40px;
+  top: 65%;
+}
+
+.action-button button {
+  background: #d66d58;
+  border-radius: 100px;
+  width: 278px;
+  height: 46px;
+  margin: 20px;
+  font-weight: 900;
+  font-size: 11px;
+  line-height: 18px;
+  text-align: center;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: #ffffff;
+}
+
+.hr {
+  background: var(--color-header-border);
+  margin: 20px;
+  height: 1px;
+}
+
+.cell-delete {
+  background-color: transparent;
+  height: 24px;
+  width: 24px;
+}
+
+.cell-delete:hover circle {
+  fill: #fc676a;
+}
+
+.cell-delete:hover rect {
+  fill: #fff;
+}
+
+.cell-delete:hover path {
+  stroke: #fff;
 }
