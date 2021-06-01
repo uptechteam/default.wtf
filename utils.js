@@ -185,8 +185,8 @@ function allSupportedGoogleServices() {
       img: "./images/logos/analytics.png",
     },
     {
-      name: "Firebase",
-      url: "firebase.google.com",
+      name: "Firebase Console",
+      url: "console.firebase.google.com",
       img: "./images/logos/firebase.png",
     },
   ];

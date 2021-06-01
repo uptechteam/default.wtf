@@ -95,7 +95,6 @@ function renderAccounts(accounts, defaultAccount) {
       cellContent
         .querySelector(".cell-body")
         .addEventListener("click", async () => {
-          console.log("click");
           SyncStorage.store({ defaultAccount: user.index }, function () {
             redirectCurrectTab(user.index);
             window.close();
