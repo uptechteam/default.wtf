@@ -225,6 +225,10 @@ header img {
   text-indent: 20px;
   height: 42px;
   border: none;
+  font-size: 14px;
+  line-height: 18px;
+  color: var(--color-title);
+  font-weight: 600;
 }
 
 .picker-container label {
