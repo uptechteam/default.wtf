@@ -138,6 +138,7 @@ header img {
 }
 
 .cell-corner {
+  color: var(--color-title);
   position: absolute;
   right: 20px;
 }

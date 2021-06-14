@@ -1,6 +1,6 @@
 // Full list of Google Services subdomains - https://gist.github.com/abuvanth/b9fcbaf7c77c2954f96c6e556138ffe8
 function isGoogleServiceUrl(url) {
-  return /^https?:\/\/[^?&]*(?:mail|drive|calendar|meet|docs|admin|photos|translate|keep|hangouts|chat|workspace|maps|news|ads|ediscovery|jamboard|earth|podcasts|classroom|business|myaccount|adsense|cloud|adwords|analytics|firebase)\.google\.co.*/i.test(
+  return /^https?:\/\/[^?&]*(?:mail|drive|calendar|meet|docs|admin|photos|translate|keep|hangouts|chat|workspace|maps|news|ads|ediscovery|jamboard|earth|podcasts|classroom|business|myaccount|adsense|cloud|adwords|analytics|firebase|play)\.google\.co.*/i.test(
     url
   );
 }
@@ -36,18 +36,6 @@ function convertToRedirectUrl(originalUrl, defaultAccount) {
   params.set("authuser", defaultAccount);
   url.search = params.toString();
   return url.toString();
-}
-
-function getAccountForService(url, rules) {
-  for (const rule of rules) {
-    const reg = new RegExp(
-      `^https?:\/\/[^?&]*${rule.serviceName.toLowerCase()}\.google\.co.*`,
-      "is"
-    );
-    if (reg.test(url)) {
-      return rule.accountId;
-    }
-  }
 }
 
 function allAccounts(callback) {
@@ -215,6 +203,12 @@ function allSupportedGoogleServices() {
       title: "Firebase Console",
       url: "firebase.google.com",
       img: "./images/logos/firebase.png",
+    },
+    {
+      name: "Google Play",
+      title: "Google Play",
+      url: "play.google.com",
+      img: "./images/logos/play.png",
     },
   ];
 }

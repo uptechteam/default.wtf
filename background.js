@@ -1,5 +1,6 @@
 let defaultAccount = 0;
 let rules = [];
+let accounts = [];
 
 chrome.runtime.onInstalled.addListener(function (details) {
   if (details.reason == "install") {
@@ -24,12 +25,19 @@ SyncStorage.get("rules", (data) => {
   rules = data.rules ?? [];
 });
 
+SyncStorage.get("accounts", (data) => {
+  accounts = data.accounts ?? [];
+});
+
 chrome.storage.onChanged.addListener(function (changes, namespace) {
   if ("defaultAccount" in changes) {
     defaultAccount = changes["defaultAccount"].newValue;
   }
   if ("rules" in changes) {
     rules = changes["rules"].newValue;
+  }
+  if ("accounts" in changes) {
+    accounts = changes["accounts"].newValue;
   }
 });
 
@@ -70,11 +78,11 @@ chrome.webRequest.onBeforeRequest.addListener(
       details.url.toLowerCase().indexOf("authuser") < 0 &&
       !/https?:\/\/.*\.google\.co.*\/u\/\d+/i.test(details.url)
     ) {
-      const accountId =
-        getAccountForService(details.url, rules) ?? defaultAccount;
+      const accountId = getAccountForService(details.url);
       const redirectUrl = convertToRedirectUrl(details.url, accountId);
       // Cos with "0" there are many redirect problems, and Google handles it anyway
-      if (redirectUrl && accountId !== 0) {
+      // isAccountLoggedIn - cos there will be ERR_TOO_MANY_REDIRECTS
+      if (redirectUrl && accountId !== 0 && isAccountLoggedIn(accountId)) {
         return { redirectUrl };
       }
     }
@@ -95,14 +103,14 @@ chrome.tabs.onCreated.addListener((tab) => {
   if (tab.openerTabId) {
     chrome.tabs.get(tab.openerTabId, (openerTab) => {
       if (openerTab && isAnyGoogleUrl(openerTab.url)) return;
-      const accountId = getAccountForService(url, rules) ?? defaultAccount;
+      const accountId = getAccountForService(url);
       const redirectUrl = convertToRedirectUrl(url, accountId);
       if (redirectUrl) {
         chrome.tabs.update(tab.id, { url: redirectUrl });
       }
     });
   } else {
-    const accountId = getAccountForService(url, rules) ?? defaultAccount;
+    const accountId = getAccountForService(url);
     const redirectUrl = convertToRedirectUrl(url, accountId);
     if (redirectUrl) {
       chrome.tabs.update(tab.id, { url: redirectUrl });
@@ -123,3 +131,21 @@ chrome.commands.onCommand.addListener((command) => {
     } catch {}
   }
 });
+
+// checks if the account is logged in (to redirect only logged in Accounts)
+function isAccountLoggedIn(accountIndex) {
+  return Boolean(accounts[accountIndex]?.isLoggedIn);
+}
+
+function getAccountForService(url) {
+  for (const rule of rules) {
+    const reg = new RegExp(
+      `^https?:\/\/[^?&]*${rule.serviceName.toLowerCase()}\.google\.co.*`,
+      "is"
+    );
+    if (reg.test(url)) {
+      return rule.accountId;
+    }
+  }
+  return defaultAccount;
+}
