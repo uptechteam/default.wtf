@@ -205,7 +205,7 @@ function allSupportedGoogleServices() {
       img: "./images/logos/firebase.png",
     },
     {
-      name: "Google Play",
+      name: "Play",
       title: "Google Play",
       url: "play.google.com",
       img: "./images/logos/play.png",
