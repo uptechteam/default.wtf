@@ -66,6 +66,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
+let lastRedirectDate;
+let lastRedirectUrl;
+
 chrome.webRequest.onBeforeRequest.addListener(
   (details) => {
     if (
@@ -83,6 +86,16 @@ chrome.webRequest.onBeforeRequest.addListener(
       // Cos with "0" there are many redirect problems, and Google handles it anyway
       // isAccountLoggedIn - cos there will be ERR_TOO_MANY_REDIRECTS
       if (redirectUrl && accountId !== 0 && isAccountLoggedIn(accountId)) {
+        const currentDate = new Date().getTime();
+        // TOO_MENY_REDIRECTS (redirect cycle)
+        // Here we are checking if there already was a try to redirect a user to the same URL + 3 sec interval
+        if (
+          lastRedirectUrl === redirectUrl &&
+          currentDate - lastRedirectDate < 3000
+        )
+          return;
+        lastRedirectDate = currentDate;
+        lastRedirectUrl = redirectUrl;
         return { redirectUrl };
       }
     }
