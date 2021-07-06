@@ -91,7 +91,7 @@ chrome.webRequest.onBeforeRequest.addListener(
         // Here we are checking if there already was a try to redirect a user to the same URL + 3 sec interval
         if (
           lastRedirectUrl === redirectUrl &&
-          currentDate - lastRedirectDate < 3000
+          currentDate - lastRedirectDate < 500
         )
           return;
         lastRedirectDate = currentDate;
