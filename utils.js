@@ -188,8 +188,8 @@ function allSupportedGoogleServices() {
     },
     {
       name: "Cloud",
-      title: "Cloud",
-      url: "cloud.google.com",
+      title: "Cloud Console",
+      url: "console.cloud.google.com",
       img: "./images/logos/cloud.png",
     },
     {
@@ -201,7 +201,7 @@ function allSupportedGoogleServices() {
     {
       name: "Firebase",
       title: "Firebase Console",
-      url: "firebase.google.com",
+      url: "console.firebase.google.com",
       img: "./images/logos/firebase.png",
     },
     {

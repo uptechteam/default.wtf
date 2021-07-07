@@ -68,34 +68,22 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 // collect last 4 redirectUrls
 let last4RedirectUrls = [];
+const maxRedirectTimeMS = 250;
 
 function detectRedirectCycle(redirectUrl) {
-  if (last4RedirectUrls.length >= 4) {
-    // check if array is full
-    last4RedirectUrls.shift(); // remove first element
-    const time = new Date().getTime();
-    last4RedirectUrls.push({ time, redirectUrl }); // add a new redirectUrl
-  } else {
-    const time = new Date().getTime();
-    last4RedirectUrls.push({ time, redirectUrl }); // add a new redirectUrl
-    return false; // return false (not enough data to detect redirect cycle)
+  const currentTime = new Date().getTime();
+  if (last4RedirectUrls.length === 0) {
+    last4RedirectUrls.push({ time: currentTime, redirectUrl });
+    return false;
   }
-  let result = [];
-  for (var i = 0; i < last4RedirectUrls.length; i++) {
-    if (i == 0) continue; // skipping first element because we want to start comparing only from 2nd
-    const previous = last4RedirectUrls[i - 1];
-    const current = last4RedirectUrls[i];
-    if (
-      current.time - previous.time < 500 &&
-      current.redirectUrl === previous.redirectUrl
-    ) {
-      // possible redirect cycle detected
-      result.push(true);
-    } else {
-      result.push(false);
-    }
-  } // if all 4 elements has the same redirect urls + redirect time < 500ms, we've detected a redirect cycle
-  return !result.includes(false);
+  const lastRedirect = last4RedirectUrls[last4RedirectUrls.length - 1];
+  if (currentTime - lastRedirect.time > maxRedirectTimeMS) {
+    last4RedirectUrls = [];
+  }
+  if (lastRedirect.redirectUrl === redirectUrl) {
+    last4RedirectUrls.push({ time: currentTime, redirectUrl });
+  }
+  return last4RedirectUrls.length >= 4;
 }
 
 chrome.webRequest.onBeforeRequest.addListener(
@@ -110,7 +98,6 @@ chrome.webRequest.onBeforeRequest.addListener(
       details.url.toLowerCase().indexOf("authuser") < 0 &&
       !/https?:\/\/.*\.google\.co.*\/u\/\d+/i.test(details.url)
     ) {
-      console.log("START-----------INFO---------------");
       const accountId = getAccountForService(details.url);
       const redirectUrl = convertToRedirectUrl(details.url, accountId);
       // Cos with "0" there are many redirect problems, and Google handles it anyway
