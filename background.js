@@ -66,8 +66,37 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
-let lastRedirectDate;
-let lastRedirectUrl;
+// collect last 4 redirectUrls
+let last4RedirectUrls = [];
+
+function detectRedirectCycle(redirectUrl) {
+  if (last4RedirectUrls.length >= 4) {
+    // check if array is full
+    last4RedirectUrls.shift(); // remove first element
+    const time = new Date().getTime();
+    last4RedirectUrls.push({ time, redirectUrl }); // add a new redirectUrl
+  } else {
+    const time = new Date().getTime();
+    last4RedirectUrls.push({ time, redirectUrl }); // add a new redirectUrl
+    return false; // return false (not enough data to detect redirect cycle)
+  }
+  let result = [];
+  for (var i = 0; i < last4RedirectUrls.length; i++) {
+    if (i == 0) continue; // skipping first element because we want to start comparing only from 2nd
+    const previous = last4RedirectUrls[i - 1];
+    const current = last4RedirectUrls[i];
+    if (
+      current.time - previous.time < 500 &&
+      current.redirectUrl === previous.redirectUrl
+    ) {
+      // possible redirect cycle detected
+      result.push(true);
+    } else {
+      result.push(false);
+    }
+  } // if all 4 elements has the same redirect urls + redirect time < 500ms, we've detected a redirect cycle
+  return !result.includes(false);
+}
 
 chrome.webRequest.onBeforeRequest.addListener(
   (details) => {
@@ -81,21 +110,13 @@ chrome.webRequest.onBeforeRequest.addListener(
       details.url.toLowerCase().indexOf("authuser") < 0 &&
       !/https?:\/\/.*\.google\.co.*\/u\/\d+/i.test(details.url)
     ) {
+      console.log("START-----------INFO---------------");
       const accountId = getAccountForService(details.url);
       const redirectUrl = convertToRedirectUrl(details.url, accountId);
       // Cos with "0" there are many redirect problems, and Google handles it anyway
       // isAccountLoggedIn - cos there will be ERR_TOO_MANY_REDIRECTS
       if (redirectUrl && accountId !== 0 && isAccountLoggedIn(accountId)) {
-        const currentDate = new Date().getTime();
-        // TOO_MENY_REDIRECTS (redirect cycle)
-        // Here we are checking if there already was a try to redirect a user to the same URL + 3 sec interval
-        if (
-          lastRedirectUrl === redirectUrl &&
-          currentDate - lastRedirectDate < 500
-        )
-          return;
-        lastRedirectDate = currentDate;
-        lastRedirectUrl = redirectUrl;
+        if (detectRedirectCycle(redirectUrl)) return; // ERR_TOO_MENY_REQUESTS (detecting a redirect cycle)
         return { redirectUrl };
       }
     }
