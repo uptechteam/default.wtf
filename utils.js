@@ -1,6 +1,6 @@
 // Full list of Google Services subdomains - https://gist.github.com/abuvanth/b9fcbaf7c77c2954f96c6e556138ffe8
 function isGoogleServiceUrl(url) {
-  return /^https?:\/\/[^?&]*(?:mail|drive|calendar|meet|docs|admin|photos|translate|keep|hangouts|chat|workspace|maps|news|ads|ediscovery|jamboard|earth|podcasts|classroom|business|myaccount|adsense|cloud|adwords|analytics|firebase|play)\.google\.co.*/i.test(
+  return /^https?:\/\/[^?&]*(?:mail|drive|calendar|meet|docs|admin|photos|translate|keep|hangouts|chat|workspace|maps|news|ads|ediscovery|jamboard|earth|podcasts|classroom|business|myaccount|adsense|cloud|adwords|analytics|firebase|play|voice)\.google\.co.*/i.test(
     url
   );
 }
@@ -209,6 +209,12 @@ function allSupportedGoogleServices() {
       title: "Google Play",
       url: "play.google.com",
       img: "./images/logos/play.png",
+    },
+    {
+      name: "Voice",
+      title: "Voice",
+      url: "voice.google.com",
+      img: "./images/logos/voice.png",
     },
   ];
 }
