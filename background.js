@@ -104,8 +104,9 @@ chrome.webRequest.onBeforeRequest.addListener(
         googleService &&
         googleService.name === "Docs" &&
         details.url.includes("/create")
-      )
+      ) {
         return;
+      }
       //
       const accountId = getAccountForService(details.url);
       const redirectUrl = convertToRedirectUrl(details.url, accountId);
