@@ -98,6 +98,15 @@ chrome.webRequest.onBeforeRequest.addListener(
       details.url.toLowerCase().indexOf("authuser") < 0 &&
       !/https?:\/\/.*\.google\.co.*\/u\/\d+/i.test(details.url)
     ) {
+      // Check google service is Docs, do not redirect on document creation
+      const googleService = getGoogleServiceByUrl(details.url);
+      if (
+        googleService &&
+        googleService.name === "Docs" &&
+        details.url.includes("/create")
+      )
+        return;
+      //
       const accountId = getAccountForService(details.url);
       const redirectUrl = convertToRedirectUrl(details.url, accountId);
       // Cos with "0" there are many redirect problems, and Google handles it anyway
