@@ -99,10 +99,8 @@ chrome.webRequest.onBeforeRequest.addListener(
       !/https?:\/\/.*\.google\.co.*\/u\/\d+/i.test(details.url)
     ) {
       // Check google service is Docs, do not redirect on document creation
-      const googleService = getGoogleServiceByUrl(details.url);
       if (
-        googleService &&
-        googleService.name === "Docs" &&
+        details.url.includes("docs.google") &&
         details.url.includes("/create")
       ) {
         return;

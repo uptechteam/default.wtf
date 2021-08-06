@@ -42,10 +42,6 @@ function allAccounts(callback) {
   SyncStorage.get("accounts", callback);
 }
 
-function getGoogleServiceByUrl(url) {
-  return allSupportedGoogleServices().find((s) => url.includes(s.url));
-}
-
 function allSupportedGoogleServices() {
   return [
     {
