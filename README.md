@@ -1,4 +1,5 @@
-# DefaultWTF
+
+# <img src="https://user-images.githubusercontent.com/22365403/129391087-1d800677-59b8-4e42-ba0c-de88d684eedd.png" alt="wtf?" width="25"/> DefaultWTF
 
 - [Website](https://www.default.wtf/)
 
