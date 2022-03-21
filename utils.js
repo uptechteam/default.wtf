@@ -1,6 +1,6 @@
 // Full list of Google Services subdomains - https://gist.github.com/abuvanth/b9fcbaf7c77c2954f96c6e556138ffe8
 function isGoogleServiceUrl(url) {
-  return /^https?:\/\/[^?&]*(?:mail|drive|calendar|meet|docs|admin|photos|translate|keep|hangouts|chat|workspace|maps|news|ads|ediscovery|jamboard|earth|podcasts|classroom|business|myaccount|adsense|cloud|adwords|analytics|firebase|play|voice)\.google\.co.*/i.test(
+  return /^https?:\/\/[^?&]*(?:mail|drive|calendar|meet|docs|admin|photos|translate|keep|hangouts|chat|workspace|maps|news|ads|ediscovery|jamboard|earth|podcasts|classroom|business|myaccount|adsense|cloud|adwords|analytics|firebase|play|voice|stadia)\.google\.co.*/i.test(
     url
   );
 }
@@ -216,6 +216,12 @@ function allSupportedGoogleServices() {
       url: "voice.google.com",
       img: "./images/logos/voice.png",
     },
+    {
+      name: "Stadia",
+      title: "Stadia",
+      url: "stadia.google.com",
+      img: "./images/logos/stadia.png",
+    }
   ];
 }
 
