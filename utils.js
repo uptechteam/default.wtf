@@ -1,7 +1,13 @@
 // Full list of Google Services subdomains - https://gist.github.com/abuvanth/b9fcbaf7c77c2954f96c6e556138ffe8
 function isGoogleServiceUrl(url) {
-  return /^https?:\/\/[^?&]*(?:mail|drive|calendar|meet|docs|admin|photos|translate|keep|hangouts|chat|workspace|maps|news|ads|ediscovery|jamboard|earth|podcasts|classroom|business|myaccount|adsense|cloud|adwords|analytics|firebase|play|voice)\.google\.co.*/i.test(
-    url
+  return (
+    /^https?:\/\/[^?&]*(?:mail|drive|calendar|meet|docs|admin|photos|translate|keep|hangouts|chat|workspace|maps|news|ads|ediscovery|jamboard|earth|podcasts|classroom|business|myaccount|adsense|cloud|adwords|analytics|firebase|play|voice|tagmanager|duo|datastudio|optimize|merchants|finance|colab.research|contacts|script|messages|search|stadia|developers|one|chrome|books)\.google\.co.*/i.test(
+      url
+    ) ||
+    // test several services that witched from the patter "https://maps.google.com" -> https://www.google.com/maps
+    /^https?:\/\/(www\.)?google\.co(?:m|\.[a-zA-Z]{2,3})\/(?:maps|finance|travel|flights)/i.test(
+      url
+    )
   );
 }
 
@@ -215,6 +221,96 @@ function allSupportedGoogleServices() {
       title: "Voice",
       url: "voice.google.com",
       img: "./images/logos/voice.png",
+    },
+    {
+      name: "TagManager",
+      title: "Tag Manager",
+      url: "tagmanager.google.com",
+      img: "./images/logos/tagmanager.png",
+    },
+    {
+      name: "Duo",
+      title: "Duo",
+      url: "duo.google.com",
+      img: "./images/logos/duo.png",
+    },
+    {
+      name: "DataStudio",
+      title: "Data Studio",
+      url: "datastudio.google.com",
+      img: "./images/logos/datastudio.png",
+    },
+    {
+      name: "Optimize",
+      title: "Optimize",
+      url: "optimize.google.com",
+      img: "./images/logos/optimize.png",
+    },
+    {
+      name: "Merchants",
+      title: "Merchant Center",
+      url: "merchants.google.com",
+      img: "./images/logos/merchants.png",
+    },
+    {
+      name: "Finance",
+      title: "Finance",
+      url: "finance.google.com",
+      img: "./images/logos/finance.png",
+    },
+    {
+      name: "Collab",
+      title: "Collab Research",
+      url: "colab.research.google.com",
+      img: "./images/logos/colab.png",
+    },
+    {
+      name: "Contacts",
+      title: "Contacts",
+      url: "contacts.google.com",
+      img: "./images/logos/contacts.png",
+    },
+    {
+      name: "Script",
+      title: "Apps Script",
+      url: "script.google.com",
+      img: "./images/logos/script.png",
+    },
+    {
+      name: "Messages",
+      title: "Messages",
+      url: "messages.google.com",
+      img: "./images/logos/messages.png",
+    },
+    {
+      name: "SearchConsole",
+      title: "Search Console",
+      url: "search.google.com",
+      img: "./images/logos/search.png",
+    },
+    {
+      name: "Stadia",
+      title: "Stadia",
+      url: "stadia.google.com",
+      img: "./images/logos/stadia.png",
+    },
+    {
+      name: "Developers",
+      title: "Developers",
+      url: "developers.google.com",
+      img: "./images/logos/developers.png",
+    },
+    {
+      name: "One",
+      title: "Google One",
+      url: "one.google.com",
+      img: "./images/logos/one.png",
+    },
+    {
+      name: "ChromeWebStore",
+      title: "Chrome Web Store",
+      url: "chrome.google.com",
+      img: "./images/logos/chrome.png",
     },
   ];
 }

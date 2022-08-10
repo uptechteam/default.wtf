@@ -88,6 +88,7 @@ function detectRedirectCycle(redirectUrl) {
 
 chrome.webRequest.onBeforeRequest.addListener(
   (details) => {
+    console.log('inside onBeforeRequest: ', details.url);
     if (
       details.url &&
       // filter only get requests from the main_frame (user-initiated)

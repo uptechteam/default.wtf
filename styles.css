@@ -22,7 +22,7 @@
     --color-title: #ffffff;
     --color-bg: #2b2437;
     --color-header-border: #433c4d;
-    --color-delete-bg: #fff;
+    --color-delete-bg: #fff;  
     --color-select-hover: #50495c;
   }
 
@@ -30,9 +30,13 @@
     /* change color select arrow */
     filter: invert(100%);
   }
+
+  a {
+    color: var(--color-orange);
+  }
 }
 
-a {
+.link {
   color: inherit; /* blue colors for links too */
   text-decoration: inherit; /* no underline */
 }
@@ -193,7 +197,7 @@ header img {
 .tabcontent {
   display: none;
   min-width: 328px;
-  padding-bottom: 20px;
+  padding-bottom: 14px;
   animation: fadeEffect 1s; /* Fading effect takes 1 second */
 }
 
@@ -302,4 +306,9 @@ header img {
 
 .cell-delete:hover path {
   stroke: #fff;
+}
+
+.footer {
+  color: var(--color-title);
+  padding: 0 14px 14px 14px;
 }
