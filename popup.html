@@ -2,7 +2,7 @@
 <body class="body">
   <link rel="stylesheet" href="styles.css" />
   <script src="utils.js"></script>
-  <a href="https://default.wtf/" target="_blank">
+  <a href="https://default.wtf/" target="_blank" class="link">
     <header>
       <img src="images/logo.svg" alt="Default Google Account" /> Default Google
       Account
@@ -57,8 +57,22 @@
         <script src="accounts.js"></script>
       </div>
     </div>
+    <div class="footer">
+      <div>
+        You can switch accounts with the shortcuts <b>Option (Alt) + {num}</b>.
+        To edit/disable them, go to "<b>chrome://extensions/shortcuts</b>" in
+        the URL bar.
+      </div>
+      <br />
+      <div>
+        To support the extension,
+        <a href="https://www.buymeacoffee.com/default" target="_blank"
+          >you can buy us a coffee</a
+        >.
+      </div>
+    </div>
     <template id="cell_template">
-      <a class="cell-body">
+      <a class="cell-body link">
         <img class="cell-image" />
         <div class="top">
           <div class="cell-title"></div>

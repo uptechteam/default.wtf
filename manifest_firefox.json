@@ -1,7 +1,7 @@
 {
   "name": "Default Google Account",
   "description": "Select and manage your default account for 🎥 Google Meet, 📩 Gmail,  📆 Google Calendar, or any other Google Service.",
-  "version": "1.9",
+  "version": "1.10",
   "manifest_version": 2,
   "browser_specific_settings": {
     "gecko": {
