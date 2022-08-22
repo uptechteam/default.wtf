@@ -1,7 +1,7 @@
 // Full list of Google Services subdomains - https://gist.github.com/abuvanth/b9fcbaf7c77c2954f96c6e556138ffe8
 function isGoogleServiceUrl(url) {
   return (
-    /^https?:\/\/[^?&]*(?:mail|drive|calendar|meet|docs|admin|photos|translate|keep|hangouts|chat|workspace|maps|news|ads|ediscovery|jamboard|earth|podcasts|classroom|business|myaccount|adsense|cloud|adwords|analytics|firebase|play|voice|tagmanager|duo|datastudio|optimize|merchants|finance|colab.research|contacts|script|messages|search|stadia|developers|one|chrome|books)\.google\.co.*/i.test(
+    /^https?:\/\/[^?&]*(?:mail|drive|calendar|meet|docs|admin|photos|translate|keep|hangouts|chat|workspace|maps|news|ads|ediscovery|jamboard|earth|podcasts|classroom|business|myaccount|adsense|cloud|adwords|analytics|firebase|play|voice|tagmanager|duo|datastudio|optimize|merchants|finance|colab.research|contacts|script|messages|search|stadia|developers|one|chrome|books|sites)\.google\.co.*/i.test(
       url
     ) ||
     // test several services that witched from the patter "https://maps.google.com" -> https://www.google.com/maps
@@ -311,6 +311,12 @@ function allSupportedGoogleServices() {
       title: "Chrome Web Store",
       url: "chrome.google.com",
       img: "./images/logos/chrome.png",
+    },
+    {
+      name: "Sites",
+      title: "Sites",
+      url: "sites.google.com",
+      img: "./images/logos/sites.png",
     },
   ];
 }
