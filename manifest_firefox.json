@@ -1,7 +1,7 @@
 {
-  "name": "Default Google Account",
-  "description": "Select and manage your default account for 🎥 Google Meet, 📩 Gmail,  📆 Google Calendar, or any other Google Service.",
-  "version": "1.11",
+  "name": "Default Account for Google™ products",
+  "description": "Select and manage your default account for 🎥 Google Meet™, 📩 Gmail™,  📆 Google Calendar™, or any other Google™ service.",
+  "version": "1.13",
   "manifest_version": 2,
   "browser_specific_settings": {
     "gecko": {
@@ -29,43 +29,43 @@
         "default": "Alt+1",
         "mac": "Alt+1"
       },
-      "description": "Switch to Google Account #1"
+      "description": "Switch to Google™ Account #1"
     },
     "switch_to_ga_2": {
       "suggested_key": {
         "default": "Alt+2",
         "mac": "Alt+2"
       },
-      "description": "Switch to Google Account #2"
+      "description": "Switch to Google™ Account #2"
     },
     "switch_to_ga_3": {
       "suggested_key": {
         "default": "Alt+3",
         "mac": "Alt+3"
       },
-      "description": "Switch to Google Account #3"
+      "description": "Switch to Google™ Account #3"
     },
     "switch_to_ga_4": {
       "suggested_key": {
         "default": "Alt+4",
         "mac": "Alt+4"
       },
-      "description": "Switch to Google Account #4"
+      "description": "Switch to Google™ Account #4"
     },
     "switch_to_ga_5": {
-      "description": "Switch to Google Account #5"
+      "description": "Switch to Google™ Account #5"
     },
     "switch_to_ga_6": {
-      "description": "Switch to Google Account #6"
+      "description": "Switch to Google™ Account #6"
     },
     "switch_to_ga_7": {
-      "description": "Switch to Google Account #7"
+      "description": "Switch to Google™ Account #7"
     },
     "switch_to_ga_8": {
-      "description": "Switch to Google Account #8"
+      "description": "Switch to Google™ Account #8"
     },
     "switch_to_ga_9": {
-      "description": "Switch to Google Account #9"
+      "description": "Switch to Google™ Account #9"
     }
   },
   "icons": {
