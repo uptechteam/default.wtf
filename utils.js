@@ -5,7 +5,7 @@ function isGoogleServiceUrl(url) {
       url
     ) ||
     // test several services that witched from the patter "https://maps.google.com" -> https://www.google.com/maps
-    /^https?:\/\/(www\.)?google\.co(?:m|\.[a-z]{2,3})\/(?:maps|finance|travel|flights)/i.test(
+    /^https?:\/\/(www\.)?google\.co(?:m|\.[a-z]{2,3})\/(?:maps|finance|travel|flights|search)/i.test(
       url
     )
   );
