@@ -1,7 +1,7 @@
 // Full list of Google Services subdomains - https://gist.github.com/abuvanth/b9fcbaf7c77c2954f96c6e556138ffe8
 function isGoogleServiceUrl(url) {
   return (
-    /^https?:\/\/[^?&]*(?:mail|drive|calendar|meet|docs|admin|photos|translate|keep|hangouts|chat|workspace|maps|news|ads|ediscovery|jamboard|earth|podcasts|classroom|business|myaccount|adsense|cloud|adwords|analytics|firebase|play|voice|tagmanager|duo|datastudio|optimize|merchants|finance|colab.research|contacts|script|messages|search|stadia|developers|one|chrome|books|sites|groups)\.google\.co.*/i.test(
+    /^https?:\/\/[^?&]*(?:mail|drive|calendar|meet|docs|admin|photos|translate|keep|hangouts|chat|workspace|maps|news|ads|ediscovery|jamboard|earth|podcasts|classroom|business|myaccount|adsense|cloud|adwords|analytics|firebase|play|voice|tagmanager|duo|datastudio|optimize|merchants|finance|colab.research|contacts|script|messages|search|stadia|developers|one|chrome|books|sites|groups|gemini)\.google\.co.*/i.test(
       url
     ) ||
     // test several services that witched from the patter "https://maps.google.com" -> https://www.google.com/maps
@@ -31,6 +31,7 @@ function redirectCurrectTab(defaultAccount) {
 function convertToRedirectUrl(originalUrl, defaultAccount) {
   const url = new URL(originalUrl);
   const params = new URLSearchParams(url.search);
+
   // check if current user is not the same (?authuser={num} or /u/{num}/)
   if (`${params.get("authuser")}` === `${defaultAccount}`) return null;
   const uMatch = originalUrl.match(/\/u\/(\d+)\/?/i);
@@ -40,6 +41,8 @@ function convertToRedirectUrl(originalUrl, defaultAccount) {
   // current user is different, change
   params.delete("authuser");
   params.set("authuser", defaultAccount);
+
+  // preserve the path (like /app for Gemini)
   url.search = params.toString();
   return url.toString();
 }
@@ -323,6 +326,12 @@ function allSupportedGoogleServices() {
       title: "Groups",
       url: "groups.google.com",
       img: "./images/logos/groups.png",
+    },
+    {
+      name: "Gemini",
+      title: "Gemini",
+      url: "gemini.google.com",
+      img: "./images/logos/gemini.png",
     },
   ];
 }
