@@ -1,72 +1,111 @@
 {
+  "manifest_version": 3,
   "name": "Default Account for Google™ products",
-  "description": "Select and manage your default account for 🎥 Google Meet™, 📩 Gmail™, or any other product.",
-  "version": "1.14",
-  "manifest_version": 2,
-  "minimum_chrome_version": "40",
-  "browser_action": {
-    "default_popup": "popup.html"
-  },
-  "background": {
-    "scripts": ["utils.js", "background.js"],
-    "persistent": true
-  },
-  "permissions": [
-    "tabs",
-    "storage",
-    "<all_urls>",
-    "webRequest",
-    "webRequestBlocking"
-  ],
-  "commands": {
-    "switch_to_ga_1": {
-      "suggested_key": {
-        "default": "Alt+1",
-        "mac": "Alt+1"
-      },
-      "description": "Switch to Google™ Account #1"
-    },
-    "switch_to_ga_2": {
-      "suggested_key": {
-        "default": "Alt+2",
-        "mac": "Alt+2"
-      },
-      "description": "Switch to Google™ Account #2"
-    },
-    "switch_to_ga_3": {
-      "suggested_key": {
-        "default": "Alt+3",
-        "mac": "Alt+3"
-      },
-      "description": "Switch to Google™ Account #3"
-    },
-    "switch_to_ga_4": {
-      "suggested_key": {
-        "default": "Alt+4",
-        "mac": "Alt+4"
-      },
-      "description": "Switch to Google™ Account #4"
-    },
-    "switch_to_ga_5": {
-      "description": "Switch to Google™ Account #5"
-    },
-    "switch_to_ga_6": {
-      "description": "Switch to Google™ Account #6"
-    },
-    "switch_to_ga_7": {
-      "description": "Switch to Google™ Account #7"
-    },
-    "switch_to_ga_8": {
-      "description": "Switch to Google™ Account #8"
-    },
-    "switch_to_ga_9": {
-      "description": "Switch to Google™ Account #9"
-    }
-  },
+  "description": "Select and manage your default account for Google Meet™, Gmail™, YouTube™, or any other Google™ product.",
+  "version": "3.0",
   "icons": {
     "16": "/images/16.png",
     "32": "/images/32.png",
     "48": "/images/48.png",
     "128": "/images/128.png"
-  }
+  },
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "service-worker.js"
+  },
+  "permissions": [
+    "storage",
+    "tabs",
+    "webNavigation"
+  ],
+  "host_permissions": [
+    "*://*.google.com/*",
+    "*://*.google.co.uk/*",
+    "*://*.google.co.in/*",
+    "*://*.google.co.jp/*",
+    "*://*.google.co.kr/*",
+    "*://*.google.co.id/*",
+    "*://*.google.co.th/*",
+    "*://*.google.co.za/*",
+    "*://*.google.co.nz/*",
+    "*://*.google.co.il/*",
+    "*://*.google.co.ke/*",
+    "*://*.google.co.ve/*",
+    "*://*.google.co.ao/*",
+    "*://*.google.co.cr/*",
+    "*://*.google.co.tz/*",
+    "*://*.google.co.ug/*",
+    "*://*.google.co.zw/*",
+    "*://*.google.com.au/*",
+    "*://*.google.com.br/*",
+    "*://*.google.com.mx/*",
+    "*://*.google.com.ar/*",
+    "*://*.google.com.co/*",
+    "*://*.google.com.tr/*",
+    "*://*.google.com.eg/*",
+    "*://*.google.com.sa/*",
+    "*://*.google.com.ng/*",
+    "*://*.google.com.pk/*",
+    "*://*.google.com.tw/*",
+    "*://*.google.com.hk/*",
+    "*://*.google.com.sg/*",
+    "*://*.google.com.my/*",
+    "*://*.google.com.ph/*",
+    "*://*.google.com.vn/*",
+    "*://*.google.com.pe/*",
+    "*://*.google.com.ua/*",
+    "*://*.google.de/*",
+    "*://*.google.fr/*",
+    "*://*.google.es/*",
+    "*://*.google.it/*",
+    "*://*.google.nl/*",
+    "*://*.google.pl/*",
+    "*://*.google.pt/*",
+    "*://*.google.ru/*",
+    "*://*.google.se/*",
+    "*://*.google.ca/*",
+    "*://*.google.be/*",
+    "*://*.google.at/*",
+    "*://*.google.ch/*",
+    "*://*.google.cl/*",
+    "*://*.google.dk/*",
+    "*://*.google.fi/*",
+    "*://*.google.gr/*",
+    "*://*.google.ie/*",
+    "*://*.google.no/*",
+    "*://*.google.ro/*",
+    "*://*.google.cz/*",
+    "*://*.google.hu/*",
+    "*://*.google.sk/*",
+    "*://*.youtube.com/*",
+    "*://*.youtu.be/*",
+    "*://*.blogger.com/*",
+    "*://*.blogspot.com/*"
+  ],
+  "commands": {
+    "switch_to_ga_1": {
+      "description": "Switch to Google™ Account #1",
+      "suggested_key": { "default": "Alt+1", "mac": "Alt+1" }
+    },
+    "switch_to_ga_2": {
+      "description": "Switch to Google™ Account #2",
+      "suggested_key": { "default": "Alt+2", "mac": "Alt+2" }
+    },
+    "switch_to_ga_3": {
+      "description": "Switch to Google™ Account #3",
+      "suggested_key": { "default": "Alt+3", "mac": "Alt+3" }
+    },
+    "switch_to_ga_4": {
+      "description": "Switch to Google™ Account #4",
+      "suggested_key": { "default": "Alt+4", "mac": "Alt+4" }
+    },
+    "switch_to_ga_5": { "description": "Switch to Google™ Account #5" },
+    "switch_to_ga_6": { "description": "Switch to Google™ Account #6" },
+    "switch_to_ga_7": { "description": "Switch to Google™ Account #7" },
+    "switch_to_ga_8": { "description": "Switch to Google™ Account #8" },
+    "switch_to_ga_9": { "description": "Switch to Google™ Account #9" }
+  },
+  "minimum_chrome_version": "88"
 }

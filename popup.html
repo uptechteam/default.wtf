@@ -1,88 +1,213 @@
 <!DOCTYPE html>
-<body class="body">
+<html>
+<head>
+  <meta charset="utf-8">
   <link rel="stylesheet" href="styles.css" />
-  <script src="utils.js"></script>
+</head>
+<body class="body">
+
   <a href="https://default.wtf/" target="_blank" class="link">
     <header>
-      <img src="images/logo.svg" alt="Default Account for Google&trade; products" /> Default Account for Google&trade; products
+      <img src="images/logo.svg" alt="Default Account for Google products" />
+      Default Account for Google&#8482; products
     </header>
   </a>
-  <section class="content">
-    <!-- Tab links -->
-    <div class="tab" width="360px">
-      <button class="tablinks" id="accounts_button">Default account</button>
-      <button class="tablinks" id="rules_button">Rules</button>
+
+  <!-- Profile bar -->
+  <div id="profile-bar">
+    <div id="profile-chips"></div>
+    <button id="settings-btn" title="Settings">&#9881;</button>
+  </div>
+
+  <!-- Redirect confirmation banner -->
+  <div id="redirect-banner" class="redirect-banner hidden">
+    <span id="redirect-banner-text"></span>
+    <div class="redirect-banner-actions">
+      <button id="redirect-yes-btn" class="banner-btn banner-btn-yes">Redirect all</button>
+      <button id="redirect-choose-btn" class="banner-btn banner-btn-choose">Choose</button>
+      <button id="redirect-no-btn" class="banner-btn banner-btn-no">Skip</button>
     </div>
-    <!-- Tab content -->
-    <div id="Rules" class="tabcontent">
-      <h3>Set account for specific Google&trade; service</h3>
+    <div class="redirect-banner-remember">
+      <button id="redirect-always-btn" class="banner-link-btn">Always redirect</button>
+      <span class="banner-sep">&middot;</span>
+      <button id="redirect-never-btn" class="banner-link-btn">Never redirect</button>
+    </div>
+  </div>
+
+  <!-- Tab chooser modal -->
+  <div id="tab-chooser-overlay" class="modal-overlay hidden">
+    <div class="modal">
+      <div class="modal-header">
+        <span>Choose tabs to redirect</span>
+        <button id="tab-chooser-close-btn" class="modal-close">&times;</button>
+      </div>
+      <div id="tab-chooser-body" class="modal-body"></div>
+      <div class="modal-footer">
+        <button id="tab-chooser-confirm-btn" class="settings-btn">Redirect selected</button>
+        <button id="tab-chooser-cancel-btn" class="settings-btn settings-btn--ghost">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main view -->
+  <div id="main-view">
+
+    <!-- Quick-switch -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-title">Switch this tab</span>
+      </div>
+      <div id="quick-switch-body"></div>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <!-- Active rules (read-only) -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-title">Active rules</span>
+        <button id="edit-rules-btn" class="section-action" title="Edit rules">Edit</button>
+      </div>
+      <div id="rules-summary"></div>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    Switch accounts: <b>Alt+1&ndash;9</b> &nbsp;&middot;&nbsp;
+    Edit at <b>chrome://extensions/shortcuts</b>
+  </div>
+
+  <!-- Settings overlay (full popup) -->
+  <div id="settings-overlay" class="overlay hidden">
+    <div class="overlay-header">
+      <button id="settings-back-btn" class="overlay-back">&larr;</button>
+      <span id="settings-title">Settings</span>
+    </div>
+    <div id="settings-body" class="overlay-body">
+
+      <!-- Settings nav -->
+      <div id="settings-nav">
+        <button class="settings-nav-item" data-section="profiles">
+          <span class="nav-icon">&#9679;</span>
+          <span>Profiles</span>
+        </button>
+        <button class="settings-nav-item" data-section="rules">
+          <span class="nav-icon">&#9776;</span>
+          <span>Rules</span>
+        </button>
+        <button class="settings-nav-item" data-section="behaviour">
+          <span class="nav-icon">&#9881;</span>
+          <span>Behaviour</span>
+        </button>
+        <button class="settings-nav-item" data-section="data">
+          <span class="nav-icon">&#8693;</span>
+          <span>Import / Export</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Settings sub-pages (shown inside settings-body) -->
+
+  <!-- Profiles page -->
+  <template id="tpl-profiles">
+    <div class="settings-page">
+      <div id="profiles-manager"></div>
+    </div>
+  </template>
+
+  <!-- Rules page -->
+  <template id="tpl-rules">
+    <div class="settings-page">
+      <div class="settings-page-header">
+        <span class="section-title">Rules</span>
+        <span class="scope-label" id="rules-scope-label"></span>
+      </div>
+      <div id="rules-body"></div>
+
+      <div class="section-divider"></div>
+      <div class="sub-section-title">Add Google service rule</div>
       <div id="service-picker-container" class="picker-container"></div>
-      <div
-        style="margin-top: 10px"
-        id="account-picker-container"
-        class="picker-container"
-      ></div>
-      <div
-        style="margin-bottom: 20px"
-        id="action-button-div"
-        class="action-button"
-      >
-        <svg
-          width="10"
-          height="6"
-          viewBox="0 0 10 6"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M1 1L4.94343 4.94343C4.97467 4.97467 5.02533 4.97467 5.05657 4.94343L9 1"
-            stroke="#2B2337"
-            stroke-width="2"
-            stroke-linecap="round"
-          />
-        </svg>
-      </div>
-      <div class="hr"></div>
-      <div>
-        <h3>Active rules</h3>
-        <div id="rules-body">
-          <script src="rules.js"></script>
+      <div id="account-picker-container" class="picker-container"></div>
+      <div id="action-button-div" class="action-button"></div>
+
+      <div class="section-divider"></div>
+      <div class="sub-section-title">Add custom URL rule</div>
+      <div class="custom-rule-form">
+        <label for="custom-name">Name:</label>
+        <input type="text" id="custom-name" placeholder="e.g. My Internal Tool" />
+        <label for="custom-pattern">URL pattern (contains):</label>
+        <input type="text" id="custom-pattern" placeholder="e.g. myapp.example.com" />
+        <div id="custom-account-picker-container" class="picker-container"></div>
+        <div class="action-button">
+          <button id="add-custom-rule-btn">Add custom rule</button>
         </div>
       </div>
     </div>
-    <div id="Accounts" class="tabcontent">
-      <h3>Select a default account for all Google&trade; services</h3>
-      <div id="accounts_body">
-        <script src="accounts.js"></script>
-      </div>
-    </div>
-    <div class="footer">
-      <div>
-        You can switch accounts with the shortcuts <b>Option (Alt) + {num}</b>.
-        To edit/disable them, go to "<b>chrome://extensions/shortcuts</b>" in
-        the URL bar.
-      </div>
-      <br />
-      <div>
-        To support the extension,
-        <a href="https://www.buymeacoffee.com/default" target="_blank"
-          >you can buy us a coffee</a
-        >.
-      </div>
-      <br />
-      <div>
-        Google&trade; is a trademark of Google Inc. Use of this trademark is subject to Google Permissions.
-      </div>
-    </div>
-    <template id="cell_template">
-      <a class="cell-body link">
-        <img class="cell-image" />
-        <div class="top">
-          <div class="cell-title"></div>
-          <div class="cell-description"></div>
+  </template>
+
+  <!-- Behaviour page -->
+  <template id="tpl-behaviour">
+    <div class="settings-page">
+      <label class="toggle-row">
+        <span class="toggle-label">
+          <span class="toggle-label-text">Enforce account on pre-cached URLs</span>
+          <span class="toggle-label-desc">Strip <code>/u/N</code> and <code>authuser</code> from autocompleted URLs and re-evaluate.</span>
+        </span>
+        <span class="toggle-switch">
+          <input type="checkbox" id="enforce-precached-toggle" />
+          <span class="toggle-slider"></span>
+        </span>
+      </label>
+
+      <div class="setting-group">
+        <span class="toggle-label-text">On profile switch</span>
+        <span class="toggle-label-desc">What to do with open Google tabs when you switch profiles.</span>
+        <div class="segmented-control" id="profile-switch-control">
+          <button class="seg-option" data-value="ask">Ask</button>
+          <button class="seg-option" data-value="always">Always redirect</button>
+          <button class="seg-option" data-value="never">Never redirect</button>
         </div>
-        <div class="cell-corner"></div>
-      </a>
-    </template>
-  </section>
+      </div>
+      <div id="behaviour-status" class="settings-status"></div>
+    </div>
+  </template>
+
+  <!-- Import/Export page -->
+  <template id="tpl-data">
+    <div class="settings-page">
+      <p class="settings-desc">Export all profiles and rules as JSON, or restore from a backup.</p>
+      <div class="settings-buttons">
+        <button id="export-btn" class="settings-btn">Export</button>
+        <button id="import-btn" class="settings-btn">Import</button>
+        <input type="file" id="import-file" accept=".json" style="display:none" />
+      </div>
+      <div id="settings-status" class="settings-status"></div>
+      <div class="section-divider"></div>
+      <p class="settings-desc">
+        Version 3.0 &mdash; Forked and improved from
+        <a href="https://default.wtf/" target="_blank">Uptech</a>.
+        BSD 3-Clause License.
+      </p>
+    </div>
+  </template>
+
+  <!-- Profile edit modal (used on top of settings) -->
+  <div id="profile-modal-overlay" class="modal-overlay hidden">
+    <div class="modal">
+      <div class="modal-header">
+        <span id="modal-title">Edit Profile</span>
+        <button id="modal-close-btn" class="modal-close">&times;</button>
+      </div>
+      <div id="modal-body"></div>
+    </div>
+  </div>
+
+  <script src="utils.js"></script>
+  <script src="app.js"></script>
+  <script src="rules.js"></script>
+  <script src="profiles.js"></script>
 </body>
+</html>
