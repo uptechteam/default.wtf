@@ -250,10 +250,11 @@ async function loadAvatar(url) {
 
 // a round avatar with a colored ring, or the account's initial when there is no avatar
 async function drawAccountIcon(account, index) {
-  if (typeof OffscreenCanvas === "undefined") return null;
+  if (typeof OffscreenCanvas === "undefined") throw new Error("OffscreenCanvas is not supported");
   const avatar = await loadAvatar(account && account.profileUrl);
   const color = BADGE_COLORS[index % BADGE_COLORS.length];
-  const letter = ((account && (account.name || account.email)) || `${index + 1}`).trim().charAt(0).toUpperCase();
+  const label = account && (account.name || account.email);
+  const letter = (typeof label === "string" && label.trim() ? label.trim() : `${index + 1}`).charAt(0).toUpperCase();
   const imageData = {};
   for (const size of [16, 32]) {
     const canvas = new OffscreenCanvas(size, size);
@@ -285,7 +286,15 @@ async function drawAccountIcon(account, index) {
 
 function accountIcon(account, index) {
   const key = `${index}|${account ? account.email : ""}|${account ? account.profileUrl : ""}`;
-  if (!iconCache.has(key)) iconCache.set(key, drawAccountIcon(account, index).catch(() => null));
+  if (!iconCache.has(key)) {
+    iconCache.set(
+      key,
+      drawAccountIcon(account, index).catch((error) => {
+        console.warn("Failed to draw the account icon, showing the number instead", error);
+        return null;
+      })
+    );
+  }
   return iconCache.get(key);
 }
 
