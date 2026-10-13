@@ -41,6 +41,7 @@ function signIn(email) {
 }
 
 function populate(response) {
+  if (!response) return; // failed to fetch accounts
   // Create the GUI from the strange nested Array structure that Google accounts responds with
   const accounts = response[1].map((info) => ({
     index: info[7],
@@ -83,7 +84,7 @@ function renderAccounts(accounts, defaultAccount) {
       cellContent.querySelector(".cell-body").addEventListener("click", () => {
         chrome.tabs.query(
           { active: true, currentWindow: true },
-          signIn(info[3])
+          signIn(user.email)
         );
       });
     } else {

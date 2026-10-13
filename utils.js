@@ -1,14 +1,32 @@
 // Full list of Google Services subdomains - https://gist.github.com/abuvanth/b9fcbaf7c77c2954f96c6e556138ffe8
+const GOOGLE_SERVICE_SUBDOMAINS = [
+  "mail", "drive", "calendar", "meet", "docs", "admin", "photos", "translate",
+  "keep", "hangouts", "chat", "workspace", "maps", "news", "ads", "ediscovery",
+  "jamboard", "earth", "podcasts", "classroom", "business", "myaccount",
+  "adsense", "cloud", "adwords", "analytics", "firebase", "play", "voice",
+  "tagmanager", "duo", "datastudio", "optimize", "merchants", "finance",
+  "colab.research", "contacts", "script", "messages", "search", "stadia",
+  "developers", "one", "chrome", "books", "sites", "groups",
+];
+
+// services that switched from the pattern "https://maps.google.com" -> "https://www.google.com/maps"
+const GOOGLE_SERVICE_PATHS = ["maps", "finance", "travel", "flights"];
+
+const googleServiceSubdomainRegex = new RegExp(
+  `^https?:\\/\\/[^?&]*(?:${GOOGLE_SERVICE_SUBDOMAINS.map((s) =>
+    s.replace(/\./g, "\\.")
+  ).join("|")})\\.google\\.co.*`,
+  "i"
+);
+const googleServicePathRegex = new RegExp(
+  `^https?:\\/\\/(www\\.)?google\\.co(?:m|\\.[a-z]{2,3})\\/(?:${GOOGLE_SERVICE_PATHS.join(
+    "|"
+  )})`,
+  "i"
+);
+
 function isGoogleServiceUrl(url) {
-  return (
-    /^https?:\/\/[^?&]*(?:mail|drive|calendar|meet|docs|admin|photos|translate|keep|hangouts|chat|workspace|maps|news|ads|ediscovery|jamboard|earth|podcasts|classroom|business|myaccount|adsense|cloud|adwords|analytics|firebase|play|voice|tagmanager|duo|datastudio|optimize|merchants|finance|colab.research|contacts|script|messages|search|stadia|developers|one|chrome|books|sites|groups)\.google\.co.*/i.test(
-      url
-    ) ||
-    // test several services that witched from the patter "https://maps.google.com" -> https://www.google.com/maps
-    /^https?:\/\/(www\.)?google\.co(?:m|\.[a-z]{2,3})\/(?:maps|finance|travel|flights)/i.test(
-      url
-    )
-  );
+  return googleServiceSubdomainRegex.test(url) || googleServicePathRegex.test(url);
 }
 
 function isAnyGoogleUrl(url) {

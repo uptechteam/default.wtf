@@ -17,17 +17,23 @@ chrome.runtime.onInstalled.addListener(function (details) {
   }
 });
 
-SyncStorage.get("defaultAccount", (data) => {
-  defaultAccount = data.defaultAccount ?? 0;
+// In Manifest V3 (Chrome) the background is a service worker that can be
+// stopped and restarted at any time, so the state is reloaded on every start.
+const stateLoaded = new Promise((resolve) => {
+  SyncStorage.get(["defaultAccount", "rules", "accounts"], (data) => {
+    defaultAccount = data.defaultAccount ?? 0;
+    rules = data.rules ?? [];
+    accounts = data.accounts ?? [];
+    resolve();
+  });
 });
 
-SyncStorage.get("rules", (data) => {
-  rules = data.rules ?? [];
-});
+// Manifest V3 has no blocking webRequest, redirects are done with declarativeNetRequest rules
+const useDeclarativeNetRequest =
+  chrome.runtime.getManifest().manifest_version >= 3 &&
+  Boolean(chrome.declarativeNetRequest);
 
-SyncStorage.get("accounts", (data) => {
-  accounts = data.accounts ?? [];
-});
+stateLoaded.then(updateRedirectRules);
 
 chrome.storage.onChanged.addListener(function (changes, namespace) {
   if ("defaultAccount" in changes) {
@@ -39,19 +45,24 @@ chrome.storage.onChanged.addListener(function (changes, namespace) {
   if ("accounts" in changes) {
     accounts = changes["accounts"].newValue;
   }
+  if (
+    "defaultAccount" in changes ||
+    "rules" in changes ||
+    "accounts" in changes
+  ) {
+    updateRedirectRules();
+  }
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message === "fetch_google_accounts") {
     const url =
       "https://accounts.google.com/ListAccounts?gpsia=1&source=ogb&mo=1&origin=https://accounts.google.com";
-    fetch(url)
+    fetch(url, { credentials: "include" })
       .then((response) => response.text())
       .then(function (rawText) {
-        const parser = new DOMParser();
-        const html = parser
-          .parseFromString(rawText, "application/xml")
-          .querySelector("script").innerHTML;
+        // DOMParser is not available in service workers
+        const html = rawText.match(/<script[^>]*>([\s\S]*?)<\/script>/i)[1];
         return html
           .split("'")[1]
           .replace(/\\x([0-9a-fA-F]{2})/g, (match, paren) =>
@@ -61,7 +72,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           .replace(/\\n/g, "");
       })
       .then((text) => JSON.parse(text))
-      .then(sendResponse);
+      .then(sendResponse)
+      .catch(() => sendResponse(null));
     return true;
   }
 });
@@ -86,7 +98,7 @@ function detectRedirectCycle(redirectUrl) {
   return last4RedirectUrls.length >= 4;
 }
 
-chrome.webRequest.onBeforeRequest.addListener(
+if (!useDeclarativeNetRequest) chrome.webRequest.onBeforeRequest.addListener(
   (details) => {
     if (
       details.url &&
@@ -126,7 +138,8 @@ chrome.webRequest.onBeforeRequest.addListener(
   ["blocking"]
 );
 
-chrome.tabs.onCreated.addListener((tab) => {
+chrome.tabs.onCreated.addListener(async (tab) => {
+  await stateLoaded;
   const url = tab.pendingUrl || tab.url;
   if (!url || !isGoogleServiceUrl(url)) return;
   if (tab.openerTabId) {
@@ -177,4 +190,90 @@ function getAccountForService(url) {
     }
   }
   return defaultAccount;
+}
+
+// Manifest V3: mirror the webRequest redirect logic above with declarativeNetRequest dynamic rules
+const RULE_PRIORITY = { defaultAccount: 1, serviceRule: 2, exception: 3 };
+const mainFrameGet = { resourceTypes: ["main_frame"], requestMethods: ["get"] };
+let redirectRulesUpdate = Promise.resolve();
+
+function authuserRedirect(accountId) {
+  return {
+    type: "redirect",
+    redirect: {
+      transform: {
+        queryTransform: {
+          addOrReplaceParams: [{ key: "authuser", value: `${accountId}` }],
+        },
+      },
+    },
+  };
+}
+
+// Cos with "0" there are many redirect problems, and Google handles it anyway
+// isAccountLoggedIn - cos there will be ERR_TOO_MANY_REDIRECTS
+function shouldRedirectTo(accountId) {
+  return accountId !== 0 && isAccountLoggedIn(accountId);
+}
+
+function buildRedirectRules() {
+  const result = [];
+  const add = (priority, action, condition) =>
+    result.push({
+      id: result.length + 1,
+      priority,
+      action,
+      condition: { ...mainFrameGet, isUrlFilterCaseSensitive: false, ...condition },
+    });
+
+  // never redirect URLs that already contain "authuser" or "/u/0"
+  add(RULE_PRIORITY.exception, { type: "allow" }, { urlFilter: "authuser" });
+  add(
+    RULE_PRIORITY.exception,
+    { type: "allow" },
+    { regexFilter: "^https?://.*\\.google\\.co.*/u/[0-9]+" }
+  );
+  // do not redirect on Docs document creation
+  add(
+    RULE_PRIORITY.exception,
+    { type: "allow" },
+    { regexFilter: "docs\\.google.*/create" }
+  );
+
+  // rules for specific services
+  for (const rule of rules) {
+    const action = shouldRedirectTo(rule.accountId)
+      ? authuserRedirect(rule.accountId)
+      : { type: "allow" };
+    add(RULE_PRIORITY.serviceRule, action, {
+      regexFilter: `^https?://[^?&]*${rule.serviceName.toLowerCase()}\\.google\\.co.*`,
+    });
+  }
+
+  // default account for all services
+  if (shouldRedirectTo(defaultAccount)) {
+    add(RULE_PRIORITY.defaultAccount, authuserRedirect(defaultAccount), {
+      requestDomains: GOOGLE_SERVICE_SUBDOMAINS.map((s) => `${s}.google.com`),
+    });
+    add(RULE_PRIORITY.defaultAccount, authuserRedirect(defaultAccount), {
+      regexFilter: `^https?://(www\\.)?google\\.co(m|\\.[a-z]{2,3})/(${GOOGLE_SERVICE_PATHS.join(
+        "|"
+      )})`,
+    });
+  }
+  return result;
+}
+
+function updateRedirectRules() {
+  if (!useDeclarativeNetRequest) return;
+  // serialize updates, so that rule ids from concurrent updates do not clash
+  redirectRulesUpdate = redirectRulesUpdate
+    .then(() => chrome.declarativeNetRequest.getDynamicRules())
+    .then((existingRules) =>
+      chrome.declarativeNetRequest.updateDynamicRules({
+        removeRuleIds: existingRules.map((r) => r.id),
+        addRules: buildRedirectRules(),
+      })
+    )
+    .catch((error) => console.error("Failed to update redirect rules", error));
 }
