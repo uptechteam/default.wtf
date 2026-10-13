@@ -2,6 +2,7 @@ const MAX_SHORTCUTS = 9;
 
 const state = {
   enabled: true,
+  toolbarIcon: "avatar",
   defaultAccount: 0,
   defaultAccountEmail: undefined,
   rules: [],
@@ -534,14 +535,18 @@ function setupRuleForm() {
 function render() {
   $("enabled").checked = state.enabled;
   $("paused-banner").hidden = state.enabled;
+  for (const option of document.querySelectorAll(".segmented [data-value]")) {
+    option.setAttribute("aria-checked", `${option.dataset.value === state.toolbarIcon}`);
+  }
   renderAccounts();
   renderRules();
 }
 
 function loadState(callback) {
-  SyncStorage.get(["enabled", "defaultAccount", "defaultAccountEmail", "rules", "accounts"], (sync) => {
+  SyncStorage.get(["enabled", "toolbarIcon", "defaultAccount", "defaultAccountEmail", "rules", "accounts"], (sync) => {
     LocalStorage.get("accounts", (local) => {
       state.enabled = sync.enabled ?? true;
+      state.toolbarIcon = sync.toolbarIcon ?? "avatar";
       state.defaultAccount = sync.defaultAccount ?? 0;
       state.defaultAccountEmail = sync.defaultAccountEmail;
       state.rules = sync.rules ?? [];
@@ -559,6 +564,10 @@ document.addEventListener("DOMContentLoaded", () => {
   $("enabled").addEventListener("change", (event) => {
     SyncStorage.store({ enabled: event.target.checked });
   });
+
+  for (const option of document.querySelectorAll(".segmented [data-value]")) {
+    option.addEventListener("click", () => SyncStorage.store({ toolbarIcon: option.dataset.value }));
+  }
 
   $("shortcuts-link").addEventListener("click", (event) => {
     event.preventDefault();

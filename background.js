@@ -2,6 +2,7 @@
 // stopped and restarted at any time, so the state is reloaded on every start.
 const state = {
   enabled: true,
+  toolbarIcon: "avatar",
   defaultAccount: 0,
   defaultAccountEmail: undefined,
   rules: [],
@@ -9,9 +10,10 @@ const state = {
 };
 
 const stateLoaded = new Promise((resolve) => {
-  SyncStorage.get(["enabled", "defaultAccount", "defaultAccountEmail", "rules", "accounts"], (sync) => {
+  SyncStorage.get(["enabled", "toolbarIcon", "defaultAccount", "defaultAccountEmail", "rules", "accounts"], (sync) => {
     LocalStorage.get("accounts", (local) => {
       state.enabled = sync.enabled ?? true;
+      state.toolbarIcon = sync.toolbarIcon ?? "avatar";
       state.defaultAccount = sync.defaultAccount ?? 0;
       state.defaultAccountEmail = sync.defaultAccountEmail;
       state.rules = sync.rules ?? [];
@@ -59,7 +61,7 @@ chrome.storage.onChanged.addListener(async (changes, area) => {
     state.accounts = changes.accounts.newValue ?? [];
   }
   if (area === "sync") {
-    for (const key of ["enabled", "defaultAccount", "defaultAccountEmail", "rules"]) {
+    for (const key of ["enabled", "toolbarIcon", "defaultAccount", "defaultAccountEmail", "rules"]) {
       if (key in changes) state[key] = changes[key].newValue;
     }
     state.enabled = state.enabled ?? true;
@@ -226,30 +228,97 @@ function updateRedirectRules() {
     .catch((error) => console.error("Failed to update redirect rules", error));
 }
 
-// Toolbar badge: the number of the account the current Google tab is opened with
+// Toolbar icon: the avatar and/or the number of the account the current Google tab is opened with
 const actionApi = chrome.action || chrome.browserAction;
 const BADGE_COLORS = ["#4285f4", "#d66d58", "#1e8e3e", "#a142f4", "#e37400", "#12b5cb", "#e52592", "#5f6368", "#b06000"];
 const DEFAULT_TITLE = chrome.runtime.getManifest().name;
+const DEFAULT_ICON = { 16: "/images/16.png", 32: "/images/32.png" };
 const ignoreError = () => void chrome.runtime.lastError;
+const iconCache = new Map();
+const tabIconKeys = new Map(); // the latest icon requested for a tab, to ignore outdated async results
 
-function updateBadge(tab) {
+async function loadAvatar(url) {
+  if (!url) return null;
+  try {
+    const response = await fetch(url);
+    if (!response.ok) return null;
+    return await createImageBitmap(await response.blob());
+  } catch {
+    return null;
+  }
+}
+
+// a round avatar with a colored ring, or the account's initial when there is no avatar
+async function drawAccountIcon(account, index) {
+  if (typeof OffscreenCanvas === "undefined") return null;
+  const avatar = await loadAvatar(account && account.profileUrl);
+  const color = BADGE_COLORS[index % BADGE_COLORS.length];
+  const letter = ((account && (account.name || account.email)) || `${index + 1}`).trim().charAt(0).toUpperCase();
+  const imageData = {};
+  for (const size of [16, 32]) {
+    const canvas = new OffscreenCanvas(size, size);
+    const ctx = canvas.getContext("2d");
+    const r = size / 2;
+    ctx.beginPath();
+    ctx.arc(r, r, r, 0, 2 * Math.PI);
+    ctx.fillStyle = color;
+    ctx.fill();
+    if (avatar) {
+      const inset = size / 16 + 0.5;
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(r, r, r - inset, 0, 2 * Math.PI);
+      ctx.clip();
+      ctx.drawImage(avatar, inset, inset, size - 2 * inset, size - 2 * inset);
+      ctx.restore();
+    } else {
+      ctx.fillStyle = "#ffffff";
+      ctx.font = `bold ${Math.round(size * 0.6)}px sans-serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(letter, r, r + size * 0.05);
+    }
+    imageData[size] = ctx.getImageData(0, 0, size, size);
+  }
+  return imageData;
+}
+
+function accountIcon(account, index) {
+  const key = `${index}|${account ? account.email : ""}|${account ? account.profileUrl : ""}`;
+  if (!iconCache.has(key)) iconCache.set(key, drawAccountIcon(account, index).catch(() => null));
+  return iconCache.get(key);
+}
+
+async function updateBadge(tab) {
   if (!actionApi || !tab || tab.id === undefined || tab.id < 0) return;
+  const tabId = tab.id;
   const url = tab.url || tab.pendingUrl;
   const service = getGoogleService(url);
   const index = service ? getAccountIndexFromUrl(url, state.accounts) : null;
-  let text = "";
+  const account = index === null ? null : state.accounts.find((a) => a.index === index);
+  const style = state.toolbarIcon || "avatar"; // "avatar" | "number" | "both"
+
   let title = state.enabled ? DEFAULT_TITLE : `${DEFAULT_TITLE} (paused)`;
   if (index !== null) {
-    const account = state.accounts.find((a) => a.index === index);
-    text = `${index + 1}`;
-    title = `${service.title}: ${account ? account.email : `account #${index + 1}`}`;
-    actionApi.setBadgeBackgroundColor({ tabId: tab.id, color: BADGE_COLORS[index % BADGE_COLORS.length] }, ignoreError);
-    if (actionApi.setBadgeTextColor) {
-      actionApi.setBadgeTextColor({ tabId: tab.id, color: "#ffffff" }, ignoreError);
-    }
+    title = `${service.title}: ${account ? account.email : "account"} (#${index + 1})`;
   }
-  actionApi.setBadgeText({ tabId: tab.id, text }, ignoreError);
-  actionApi.setTitle({ tabId: tab.id, title }, ignoreError);
+  actionApi.setTitle({ tabId, title }, ignoreError);
+
+  const key = `${url}|${index}|${style}|${account ? account.profileUrl : ""}`;
+  tabIconKeys.set(tabId, key);
+  const icon = index !== null && style !== "number" ? await accountIcon(account, index) : null;
+  if (tabIconKeys.get(tabId) !== key) return; // the tab changed meanwhile
+
+  if (icon) actionApi.setIcon({ tabId, imageData: icon }, ignoreError);
+  else actionApi.setIcon({ tabId, path: DEFAULT_ICON }, ignoreError);
+
+  // the number, also when the avatar could not be drawn
+  const showNumber = index !== null && (style !== "avatar" || !icon);
+  if (showNumber) {
+    actionApi.setBadgeBackgroundColor({ tabId, color: BADGE_COLORS[index % BADGE_COLORS.length] }, ignoreError);
+    if (actionApi.setBadgeTextColor) actionApi.setBadgeTextColor({ tabId, color: "#ffffff" }, ignoreError);
+  }
+  actionApi.setBadgeText({ tabId, text: showNumber ? `${index + 1}` : "" }, ignoreError);
 }
 
 function updateAllBadges() {
@@ -261,3 +330,5 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   await stateLoaded;
   updateBadge(tab);
 });
+
+chrome.tabs.onRemoved.addListener((tabId) => tabIconKeys.delete(tabId));
