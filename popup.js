@@ -545,7 +545,8 @@ function loadState(callback) {
       state.defaultAccount = sync.defaultAccount ?? 0;
       state.defaultAccountEmail = sync.defaultAccountEmail;
       state.rules = sync.rules ?? [];
-      state.accounts = local.accounts ?? sync.accounts ?? [];
+      // ignore accounts that could not be read
+      state.accounts = (local.accounts ?? sync.accounts ?? []).filter((a) => a.email);
       callback();
     });
   });
@@ -572,7 +573,7 @@ document.addEventListener("DOMContentLoaded", () => {
     render();
     chrome.runtime.sendMessage("fetch_google_accounts", (accounts) => {
       void chrome.runtime.lastError;
-      if (accounts) state.accounts = accounts;
+      if (accounts) state.accounts = accounts.filter((a) => a.email);
       state.accountsStatus = accounts || state.accounts.length ? "loaded" : "error";
       render();
     });

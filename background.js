@@ -80,23 +80,12 @@ function refreshAccounts() {
   return fetch(ACCOUNTS_URL, { credentials: "include" })
     .then((response) => response.text())
     .then((rawText) => {
-      // DOMParser is not available in service workers
-      const script = rawText.match(/<script[^>]*>([\s\S]*?)<\/script>/i)[1];
-      const json = script
-        .split("'")[1]
-        .replace(/\\x([0-9a-fA-F]{2})/g, (match, paren) =>
-          String.fromCharCode(parseInt(paren, 16))
-        )
-        .replace(/\\\//g, "/")
-        .replace(/\\n/g, "");
-      // the strange nested Array structure that Google accounts responds with
-      const accounts = (JSON.parse(json)[1] ?? []).map((info) => ({
-        index: info[7],
-        name: info[2],
-        email: info[3],
-        profileUrl: info[4],
-        isLoggedIn: info.length >= 16, // If the account is signed in (as far as I know)
-      }));
+      const accounts = parseAccountsResponse(rawText);
+      if (!accounts) {
+        // the response format changed, log its shape (without personal data) for debugging
+        console.warn("Unexpected Google accounts response", describeAccountsResponse(rawText));
+        return null;
+      }
       return new Promise((resolve) => LocalStorage.store({ accounts }, () => resolve(accounts)));
     })
     .catch((error) => {

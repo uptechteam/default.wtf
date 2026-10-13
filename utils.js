@@ -141,6 +141,81 @@ function resolveAccountIndex(accounts, email, fallbackIndex) {
   return account && account.isLoggedIn ? account.index : null;
 }
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const isEmail = (v) => typeof v === "string" && EMAIL_REGEX.test(v);
+
+// The JSON from the accounts.google.com/ListAccounts response. It is either a page with
+// window.parent.postMessage('<escaped JSON>', ...) in a script, or plain JSON (optionally with a )]}' prefix).
+function extractAccountsJson(rawText) {
+  const decode = (s) =>
+    s
+      .replace(/\\x([0-9a-fA-F]{2})/g, (m, hex) => String.fromCharCode(parseInt(hex, 16)))
+      .replace(/\\u([0-9a-fA-F]{4})/g, (m, hex) => String.fromCharCode(parseInt(hex, 16)))
+      .replace(/\\\//g, "/")
+      .replace(/\\n/g, "");
+  const candidates = [];
+  for (const match of rawText.matchAll(/postMessage\(\s*'((?:[^'\\]|\\.)*)'/g)) {
+    candidates.push(decode(match[1]));
+  }
+  candidates.push(rawText.replace(/^\)\]\}'\s*/, ""));
+  for (const candidate of candidates) {
+    try {
+      return JSON.parse(candidate);
+    } catch {}
+  }
+  return null;
+}
+
+// Finds the account entries: arrays that contain the account email.
+// Known format: ["gaia.l.a", 1, name, email, photoUrl, 1, 1, 0 /* index */, null, 1, id, ..., 1 /* signed in */]
+function findAccountEntries(node, found = []) {
+  if (!Array.isArray(node)) return found;
+  if (node.some(isEmail)) {
+    found.push(node);
+    return found;
+  }
+  for (const child of node) findAccountEntries(child, found);
+  return found;
+}
+
+// Returns [{ index, name, email, profileUrl, isLoggedIn }], or null if the response is not recognized
+function parseAccountsResponse(rawText) {
+  const json = extractAccountsJson(rawText);
+  if (!Array.isArray(json)) return null;
+  const entries = findAccountEntries(json);
+  // a valid response without accounts: ["gaia.l.a.r", []]
+  if (!entries.length) return json.length >= 2 && Array.isArray(json[1]) && !json[1].length ? [] : null;
+
+  let signedInCount = 0;
+  return entries.map((info) => {
+    const emailAt = info.findIndex(isEmail);
+    const email = info[emailAt];
+    const name = typeof info[emailAt - 1] === "string" && !isEmail(info[emailAt - 1]) ? info[emailAt - 1] : "";
+    const profileUrl =
+      info.find((v) => typeof v === "string" && /^(https?:)?\/\//.test(v)) || "";
+    // signed out accounts have a shorter entry (as far as we know)
+    const isLoggedIn = info.length - emailAt >= 13;
+    const knownIndex = info[emailAt + 4];
+    const index = Number.isInteger(knownIndex) ? knownIndex : isLoggedIn ? signedInCount : -1;
+    if (isLoggedIn) signedInCount++;
+    return { index, name, email, profileUrl: profileUrl.replace(/^\/\//, "https://"), isLoggedIn };
+  });
+}
+
+// The structure of the response without personal data, for bug reports
+function describeAccountsResponse(rawText) {
+  const shape = (v) =>
+    Array.isArray(v)
+      ? v.map(shape)
+      : isEmail(v)
+      ? "<email>"
+      : typeof v === "string"
+      ? v.startsWith("gaia") ? v : `<string ${v.length}>`
+      : v;
+  const json = extractAccountsJson(rawText);
+  return json ? JSON.stringify(shape(json)) : `not JSON, ${rawText.length} chars: ${rawText.slice(0, 80).replace(/[^\s<>"'=\/a-z]/gi, "*")}`;
+}
+
 function getServiceByUrl(serviceUrl) {
   return GOOGLE_SERVICES.find((s) => s.url === serviceUrl) || null;
 }
