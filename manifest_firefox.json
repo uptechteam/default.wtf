@@ -28,28 +28,28 @@
     "switch_to_ga_1": {
       "suggested_key": {
         "default": "Alt+1",
-        "mac": "Alt+1"
+        "mac": "MacCtrl+Shift+1"
       },
       "description": "Switch to Google™ Account #1"
     },
     "switch_to_ga_2": {
       "suggested_key": {
         "default": "Alt+2",
-        "mac": "Alt+2"
+        "mac": "MacCtrl+Shift+2"
       },
       "description": "Switch to Google™ Account #2"
     },
     "switch_to_ga_3": {
       "suggested_key": {
         "default": "Alt+3",
-        "mac": "Alt+3"
+        "mac": "MacCtrl+Shift+3"
       },
       "description": "Switch to Google™ Account #3"
     },
     "switch_to_ga_4": {
       "suggested_key": {
         "default": "Alt+4",
-        "mac": "Alt+4"
+        "mac": "MacCtrl+Shift+4"
       },
       "description": "Switch to Google™ Account #4"
     },

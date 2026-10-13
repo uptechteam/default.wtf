@@ -8,6 +8,7 @@ const state = {
   rules: [],
   accounts: [],
   accountsStatus: "loading", // "loading" | "loaded" | "error"
+  shortcuts: {}, // account number -> keyboard shortcut, as set in the browser
 };
 
 const $ = (id) => document.getElementById(id);
@@ -111,10 +112,11 @@ function renderAccounts() {
       shortcut++;
       const isDefault = account.index === defaultIndex;
       row.setAttribute("aria-checked", `${isDefault}`);
-      if (shortcut <= MAX_SHORTCUTS) {
+      const keys = shortcut <= MAX_SHORTCUTS && state.shortcuts[shortcut];
+      if (keys) {
         const kbd = document.createElement("kbd");
-        kbd.textContent = `Alt+${shortcut}`;
-        kbd.title = `Switch the current tab with Alt+${shortcut}`;
+        kbd.textContent = keys;
+        kbd.title = `Switch the current tab to this account with ${keys}`;
         end.append(kbd);
       }
       const radio = document.createElement("span");
@@ -463,7 +465,7 @@ function renderRuleForm() {
     label: s.title,
     sublabel: s.url,
     img: s.img,
-    keywords: s.name,
+    keywords: `${s.name} ${s.keywords || ""}`,
     group,
   });
   servicePicker.setItems([
@@ -575,6 +577,17 @@ document.addEventListener("DOMContentLoaded", () => {
     chrome.tabs.create({ url: firefox ? "about:addons" : "chrome://extensions/shortcuts" });
     window.close();
   });
+
+  // the shortcuts can be changed by the user, show the actual ones
+  if (chrome.commands && chrome.commands.getAll) {
+    chrome.commands.getAll((commands) => {
+      for (const command of commands || []) {
+        const match = /^switch_to_ga_(\d)$/.exec(command.name);
+        if (match && command.shortcut) state.shortcuts[match[1]] = command.shortcut;
+      }
+      renderAccounts();
+    });
+  }
 
   // render the cached state right away, then refresh the accounts
   loadState(() => {
