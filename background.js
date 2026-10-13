@@ -1,30 +1,24 @@
-let defaultAccount = 0;
-let rules = [];
-let accounts = [];
-
-chrome.runtime.onInstalled.addListener(function (details) {
-  if (details.reason == "install") {
-    SyncStorage.get("rules", (data) => {
-      if (data.rules === undefined) {
-        SyncStorage.store({ rules: [] });
-      }
-    });
-    SyncStorage.get("defaultAccount", (data) => {
-      if (data.defaultAccount === undefined) {
-        SyncStorage.store({ defaultAccount: 0 });
-      }
-    });
-  }
-});
-
 // In Manifest V3 (Chrome) the background is a service worker that can be
 // stopped and restarted at any time, so the state is reloaded on every start.
+const state = {
+  enabled: true,
+  defaultAccount: 0,
+  defaultAccountEmail: undefined,
+  rules: [],
+  accounts: [],
+};
+
 const stateLoaded = new Promise((resolve) => {
-  SyncStorage.get(["defaultAccount", "rules", "accounts"], (data) => {
-    defaultAccount = data.defaultAccount ?? 0;
-    rules = data.rules ?? [];
-    accounts = data.accounts ?? [];
-    resolve();
+  SyncStorage.get(["enabled", "defaultAccount", "defaultAccountEmail", "rules", "accounts"], (sync) => {
+    LocalStorage.get("accounts", (local) => {
+      state.enabled = sync.enabled ?? true;
+      state.defaultAccount = sync.defaultAccount ?? 0;
+      state.defaultAccountEmail = sync.defaultAccountEmail;
+      state.rules = sync.rules ?? [];
+      // accounts used to be stored in sync storage
+      state.accounts = local.accounts ?? sync.accounts ?? [];
+      resolve();
+    });
   });
 });
 
@@ -33,233 +27,195 @@ const useDeclarativeNetRequest =
   chrome.runtime.getManifest().manifest_version >= 3 &&
   Boolean(chrome.declarativeNetRequest);
 
-stateLoaded.then(updateRedirectRules);
+const ACCOUNTS_URL =
+  "https://accounts.google.com/ListAccounts?gpsia=1&source=ogb&mo=1&origin=https://accounts.google.com";
+const ACCOUNTS_REFRESH_MINUTES = 15;
 
-chrome.storage.onChanged.addListener(function (changes, namespace) {
-  if ("defaultAccount" in changes) {
-    defaultAccount = changes["defaultAccount"].newValue;
+// no need to store the defaults on install, missing settings fall back to them
+chrome.runtime.onInstalled.addListener(() => {
+  // accounts used to be synced between devices, but they are specific to this browser
+  chrome.storage.sync.remove("accounts");
+});
+
+stateLoaded.then(() => {
+  updateRedirectRules();
+  refreshAccounts();
+});
+
+// keep the signed in accounts up to date, so that we don't redirect to a signed out account
+if (chrome.alarms) {
+  chrome.alarms.create("refresh_accounts", { periodInMinutes: ACCOUNTS_REFRESH_MINUTES });
+  chrome.alarms.onAlarm.addListener((alarm) => {
+    if (alarm.name === "refresh_accounts") refreshAccounts();
+  });
+}
+
+chrome.storage.onChanged.addListener(async (changes, area) => {
+  // a change can wake up the service worker, apply it after the stored state is loaded,
+  // otherwise the state that is being loaded overwrites it
+  await stateLoaded;
+  if (area === "local" && "accounts" in changes) {
+    state.accounts = changes.accounts.newValue ?? [];
   }
-  if ("rules" in changes) {
-    rules = changes["rules"].newValue;
+  if (area === "sync") {
+    for (const key of ["enabled", "defaultAccount", "defaultAccountEmail", "rules"]) {
+      if (key in changes) state[key] = changes[key].newValue;
+    }
+    state.enabled = state.enabled ?? true;
+    state.rules = state.rules ?? [];
   }
-  if ("accounts" in changes) {
-    accounts = changes["accounts"].newValue;
-  }
-  if (
-    "defaultAccount" in changes ||
-    "rules" in changes ||
-    "accounts" in changes
-  ) {
-    updateRedirectRules();
-  }
+  updateRedirectRules();
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message === "fetch_google_accounts") {
-    const url =
-      "https://accounts.google.com/ListAccounts?gpsia=1&source=ogb&mo=1&origin=https://accounts.google.com";
-    fetch(url, { credentials: "include" })
-      .then((response) => response.text())
-      .then(function (rawText) {
-        // DOMParser is not available in service workers
-        const html = rawText.match(/<script[^>]*>([\s\S]*?)<\/script>/i)[1];
-        return html
-          .split("'")[1]
-          .replace(/\\x([0-9a-fA-F]{2})/g, (match, paren) =>
-            String.fromCharCode(parseInt(paren, 16))
-          )
-          .replace(/\\\//g, "/")
-          .replace(/\\n/g, "");
-      })
-      .then((text) => JSON.parse(text))
-      .then(sendResponse)
-      .catch(() => sendResponse(null));
+    refreshAccounts().then(sendResponse);
     return true;
   }
 });
 
+// Fetches the accounts signed in to this browser and saves them.
+// Resolves with the accounts, or null if they could not be fetched.
+function refreshAccounts() {
+  return fetch(ACCOUNTS_URL, { credentials: "include" })
+    .then((response) => response.text())
+    .then((rawText) => {
+      // DOMParser is not available in service workers
+      const script = rawText.match(/<script[^>]*>([\s\S]*?)<\/script>/i)[1];
+      const json = script
+        .split("'")[1]
+        .replace(/\\x([0-9a-fA-F]{2})/g, (match, paren) =>
+          String.fromCharCode(parseInt(paren, 16))
+        )
+        .replace(/\\\//g, "/")
+        .replace(/\\n/g, "");
+      // the strange nested Array structure that Google accounts responds with
+      const accounts = (JSON.parse(json)[1] ?? []).map((info) => ({
+        index: info[7],
+        name: info[2],
+        email: info[3],
+        profileUrl: info[4],
+        isLoggedIn: info.length >= 16, // If the account is signed in (as far as I know)
+      }));
+      return new Promise((resolve) => LocalStorage.store({ accounts }, () => resolve(accounts)));
+    })
+    .catch((error) => {
+      console.warn("Failed to fetch Google accounts", error);
+      return null;
+    });
+}
+
+// The URL to redirect to, or null if the URL should be opened as is
+function getRedirectUrl(url) {
+  if (!state.enabled || !url || isRedirectExcluded(url)) return null;
+  const service = getGoogleService(url);
+  if (!service) return null;
+  const accountIndex = getAccountIndexForService(service, state);
+  // Cos with "0" there are many redirect problems, and Google handles it anyway
+  // signed out accounts - cos there will be ERR_TOO_MANY_REDIRECTS
+  if (accountIndex === null || accountIndex === 0) return null;
+  return convertToRedirectUrl(url, accountIndex);
+}
+
 // collect last 4 redirectUrls
-let last4RedirectUrls = [];
+let lastRedirects = [];
 const maxRedirectTimeMS = 250;
 
 function detectRedirectCycle(redirectUrl) {
-  const currentTime = new Date().getTime();
-  if (last4RedirectUrls.length === 0) {
-    last4RedirectUrls.push({ time: currentTime, redirectUrl });
-    return false;
-  }
-  const lastRedirect = last4RedirectUrls[last4RedirectUrls.length - 1];
-  if (currentTime - lastRedirect.time > maxRedirectTimeMS) {
-    last4RedirectUrls = [];
-  }
-  if (lastRedirect.redirectUrl === redirectUrl) {
-    last4RedirectUrls.push({ time: currentTime, redirectUrl });
-  }
-  return last4RedirectUrls.length >= 4;
+  const currentTime = Date.now();
+  lastRedirects = lastRedirects.filter(
+    (r) => r.redirectUrl === redirectUrl && currentTime - r.time <= maxRedirectTimeMS
+  );
+  lastRedirects.push({ time: currentTime, redirectUrl });
+  return lastRedirects.length >= 4;
 }
 
-if (!useDeclarativeNetRequest) chrome.webRequest.onBeforeRequest.addListener(
-  (details) => {
-    if (
-      details.url &&
-      // filter only get requests from the main_frame (user-initiated)
-      details.method === "GET" &&
-      // test if it's one of the Google services
-      isGoogleServiceUrl(details.url) &&
-      // test if the URL does not contain "authuser" or "/u/0"
-      details.url.toLowerCase().indexOf("authuser") < 0 &&
-      !/https?:\/\/.*\.google\.co.*\/u\/\d+/i.test(details.url)
-    ) {
-      // Check google service is Docs, do not redirect on document creation
-      if (
-        details.url.includes("docs.google") &&
-        details.url.includes("/create")
-      ) {
-        return;
-      }
-      //
-      const accountId = getAccountForService(details.url);
-      const redirectUrl = convertToRedirectUrl(details.url, accountId);
-      // Cos with "0" there are many redirect problems, and Google handles it anyway
-      // isAccountLoggedIn - cos there will be ERR_TOO_MANY_REDIRECTS
-      if (redirectUrl && accountId !== 0 && isAccountLoggedIn(accountId)) {
-        if (detectRedirectCycle(redirectUrl)) return; // ERR_TOO_MENY_REQUESTS (detecting a redirect cycle)
+// Manifest V2 (Firefox)
+if (!useDeclarativeNetRequest) {
+  chrome.webRequest.onBeforeRequest.addListener(
+    (details) => {
+      // filter only get requests (user-initiated)
+      if (details.method !== "GET") return;
+      const redirectUrl = getRedirectUrl(details.url);
+      if (redirectUrl && !detectRedirectCycle(redirectUrl)) {
         return { redirectUrl };
       }
-    }
-  },
-  // filters
-  {
-    // types: ["main_frame", "sub_frame"],
-    types: ["main_frame"],
-    urls: ["<all_urls>"],
-  },
-  // extraInfoSpec
-  ["blocking"]
-);
+    },
+    { types: ["main_frame"], urls: ["<all_urls>"] },
+    ["blocking"]
+  );
+}
 
+// force redirect of new tabs, which are not opened from Google services
 chrome.tabs.onCreated.addListener(async (tab) => {
   await stateLoaded;
-  const url = tab.pendingUrl || tab.url;
-  if (!url || !isGoogleServiceUrl(url)) return;
+  if (!isGoogleServiceUrl(tab.pendingUrl || tab.url)) return;
   if (tab.openerTabId) {
-    chrome.tabs.get(tab.openerTabId, (openerTab) => {
-      if (openerTab && isAnyGoogleUrl(openerTab.url)) return;
-      const accountId = getAccountForService(url);
-      const redirectUrl = convertToRedirectUrl(url, accountId);
-      if (redirectUrl) {
-        chrome.tabs.update(tab.id, { url: redirectUrl });
-      }
-    });
-  } else {
-    const accountId = getAccountForService(url);
-    const redirectUrl = convertToRedirectUrl(url, accountId);
-    if (redirectUrl) {
-      chrome.tabs.update(tab.id, { url: redirectUrl });
-    }
-  }
-});
-
-chrome.commands.onCommand.addListener((command) => {
-  if (command?.indexOf("switch_to_ga_") >= 0) {
-    try {
-      const accNum = parseInt(command.charAt(command.length - 1)) - 1;
-      SyncStorage.get("accounts", (data) => {
-        // redirect only if accNum is not > than totla number of accounts
-        if (data.accounts && data.accounts.length > accNum) {
-          redirectCurrectTab(accNum);
-        }
-      });
-    } catch {}
-  }
-});
-
-// checks if the account is logged in (to redirect only logged in Accounts)
-function isAccountLoggedIn(accountIndex) {
-  return Boolean(accounts[accountIndex]?.isLoggedIn);
-}
-
-function getAccountForService(url) {
-  for (const rule of rules) {
-    const reg = new RegExp(
-      `^https?:\/\/[^?&]*${rule.serviceName.toLowerCase()}\.google\.co.*`,
-      "is"
+    const openerTab = await new Promise((resolve) =>
+      chrome.tabs.get(tab.openerTabId, (t) => resolve(chrome.runtime.lastError ? null : t))
     );
-    if (reg.test(url)) {
-      return rule.accountId;
-    }
+    if (openerTab && isAnyGoogleUrl(openerTab.url)) return;
   }
-  return defaultAccount;
-}
+  // the request could be already redirected, get the latest URL
+  chrome.tabs.get(tab.id, (current) => {
+    if (chrome.runtime.lastError || !current) return;
+    const redirectUrl = getRedirectUrl(current.pendingUrl || current.url);
+    if (redirectUrl) chrome.tabs.update(tab.id, { url: redirectUrl });
+  });
+});
 
-// Manifest V3: mirror the webRequest redirect logic above with declarativeNetRequest dynamic rules
-const RULE_PRIORITY = { defaultAccount: 1, serviceRule: 2, exception: 3 };
-const mainFrameGet = { resourceTypes: ["main_frame"], requestMethods: ["get"] };
+chrome.commands.onCommand.addListener(async (command) => {
+  if (!command || !command.startsWith("switch_to_ga_")) return;
+  await stateLoaded;
+  const accNum = parseInt(command.charAt(command.length - 1)) - 1;
+  const account = state.accounts.filter((a) => a.isLoggedIn)[accNum];
+  // redirect only if there is such signed in account
+  if (account) redirectCurrentTab(account.index);
+});
+
+// Manifest V3 (Chrome): the same redirect logic as getRedirectUrl, as declarativeNetRequest dynamic rules
+const EXCLUSION_PRIORITY = 2;
+const REDIRECT_PRIORITY = 1;
 let redirectRulesUpdate = Promise.resolve();
-
-function authuserRedirect(accountId) {
-  return {
-    type: "redirect",
-    redirect: {
-      transform: {
-        queryTransform: {
-          addOrReplaceParams: [{ key: "authuser", value: `${accountId}` }],
-        },
-      },
-    },
-  };
-}
-
-// Cos with "0" there are many redirect problems, and Google handles it anyway
-// isAccountLoggedIn - cos there will be ERR_TOO_MANY_REDIRECTS
-function shouldRedirectTo(accountId) {
-  return accountId !== 0 && isAccountLoggedIn(accountId);
-}
 
 function buildRedirectRules() {
   const result = [];
+  if (!state.enabled) return result;
   const add = (priority, action, condition) =>
     result.push({
       id: result.length + 1,
       priority,
       action,
-      condition: { ...mainFrameGet, isUrlFilterCaseSensitive: false, ...condition },
+      condition: {
+        resourceTypes: ["main_frame"],
+        requestMethods: ["get"],
+        isUrlFilterCaseSensitive: false,
+        ...condition,
+      },
     });
 
-  // never redirect URLs that already contain "authuser" or "/u/0"
-  add(RULE_PRIORITY.exception, { type: "allow" }, { urlFilter: "authuser" });
-  add(
-    RULE_PRIORITY.exception,
-    { type: "allow" },
-    { regexFilter: "^https?://.*\\.google\\.co.*/u/[0-9]+" }
-  );
-  // do not redirect on Docs document creation
-  add(
-    RULE_PRIORITY.exception,
-    { type: "allow" },
-    { regexFilter: "docs\\.google.*/create" }
-  );
-
-  // rules for specific services
-  for (const rule of rules) {
-    const action = shouldRedirectTo(rule.accountId)
-      ? authuserRedirect(rule.accountId)
-      : { type: "allow" };
-    add(RULE_PRIORITY.serviceRule, action, {
-      regexFilter: `^https?://[^?&]*${rule.serviceName.toLowerCase()}\\.google\\.co.*`,
-    });
+  // never redirect URLs where the account is already chosen
+  add(EXCLUSION_PRIORITY, { type: "allow" }, { urlFilter: "authuser" });
+  for (const regexFilter of NO_REDIRECT_REGEX_SOURCES) {
+    add(EXCLUSION_PRIORITY, { type: "allow" }, { regexFilter });
   }
 
-  // default account for all services
-  if (shouldRedirectTo(defaultAccount)) {
-    add(RULE_PRIORITY.defaultAccount, authuserRedirect(defaultAccount), {
-      requestDomains: GOOGLE_SERVICE_SUBDOMAINS.map((s) => `${s}.google.com`),
-    });
-    add(RULE_PRIORITY.defaultAccount, authuserRedirect(defaultAccount), {
-      regexFilter: `^https?://(www\\.)?google\\.co(m|\\.[a-z]{2,3})/(${GOOGLE_SERVICE_PATHS.join(
-        "|"
-      )})`,
-    });
+  for (const service of GOOGLE_SERVICES) {
+    const accountIndex = getAccountIndexForService(service, state);
+    if (accountIndex === null || accountIndex === 0) continue;
+    const action = {
+      type: "redirect",
+      redirect: {
+        transform: {
+          queryTransform: {
+            addOrReplaceParams: [{ key: "authuser", value: `${accountIndex}` }],
+          },
+        },
+      },
+    };
+    for (const regexFilter of serviceRegexSources(service)) {
+      add(REDIRECT_PRIORITY, action, { regexFilter });
+    }
   }
   return result;
 }
@@ -268,6 +224,7 @@ function updateRedirectRules() {
   if (!useDeclarativeNetRequest) return;
   // serialize updates, so that rule ids from concurrent updates do not clash
   redirectRulesUpdate = redirectRulesUpdate
+    .then(() => stateLoaded)
     .then(() => chrome.declarativeNetRequest.getDynamicRules())
     .then((existingRules) =>
       chrome.declarativeNetRequest.updateDynamicRules({

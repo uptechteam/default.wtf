@@ -1,350 +1,170 @@
+// Shared between the background script (Chrome service worker / Firefox background page) and the popup.
+
+// Google services the extension handles.
+// - hosts: service subdomains, e.g. "mail" matches mail.google.com, mail.google.co.uk, ...
+// - paths: services that live under www.google.com, e.g. "maps" matches www.google.com/maps
+// - hidden: handled by the default account, but not offered in the "Rules" picker
 // Full list of Google Services subdomains - https://gist.github.com/abuvanth/b9fcbaf7c77c2954f96c6e556138ffe8
-const GOOGLE_SERVICE_SUBDOMAINS = [
-  "mail", "drive", "calendar", "meet", "docs", "admin", "photos", "translate",
-  "keep", "hangouts", "chat", "workspace", "maps", "news", "ads", "ediscovery",
-  "jamboard", "earth", "podcasts", "classroom", "business", "myaccount",
-  "adsense", "cloud", "adwords", "analytics", "firebase", "play", "voice",
-  "tagmanager", "duo", "datastudio", "optimize", "merchants", "finance",
-  "colab.research", "contacts", "script", "messages", "search", "stadia",
-  "developers", "one", "chrome", "books", "sites", "groups",
+const GOOGLE_SERVICES = [
+  { name: "Mail", title: "Gmail", url: "mail.google.com", hosts: ["mail"], img: "mail" },
+  { name: "Calendar", title: "Calendar", url: "calendar.google.com", hosts: ["calendar"], img: "calendar" },
+  { name: "Drive", title: "Drive", url: "drive.google.com", hosts: ["drive"], img: "drive" },
+  { name: "Docs", title: "Docs, Sheets & Slides", url: "docs.google.com", hosts: ["docs"], img: "docs" },
+  { name: "Meet", title: "Meet", url: "meet.google.com", hosts: ["meet"], img: "meet" },
+  { name: "Chat", title: "Chat", url: "chat.google.com", hosts: ["chat"], img: "chat" },
+  { name: "Maps", title: "Maps", url: "maps.google.com", hosts: ["maps"], paths: ["maps"], img: "maps" },
+  { name: "Photos", title: "Photos", url: "photos.google.com", hosts: ["photos"], img: "photos" },
+  { name: "Keep", title: "Keep", url: "keep.google.com", hosts: ["keep"], img: "keep" },
+  { name: "Contacts", title: "Contacts", url: "contacts.google.com", hosts: ["contacts"], img: "contacts" },
+  { name: "Admin", title: "Admin", url: "admin.google.com", hosts: ["admin"], img: "admin" },
+  { name: "Ads", title: "Ads", url: "ads.google.com", hosts: ["ads"], img: "ads" },
+  { name: "Adwords", title: "Adwords", url: "adwords.google.com", hosts: ["adwords"], img: "ads" },
+  { name: "Adsense", title: "AdSense", url: "adsense.google.com", hosts: ["adsense"], img: "adsense" },
+  { name: "Analytics", title: "Analytics", url: "analytics.google.com", hosts: ["analytics"], img: "analytics" },
+  { name: "Script", title: "Apps Script", url: "script.google.com", hosts: ["script"], img: "script" },
+  { name: "Business", title: "Business Profile", url: "business.google.com", hosts: ["business"], img: "business" },
+  { name: "Chrome", title: "Chrome Web Store", url: "chrome.google.com", hosts: ["chrome"], img: "chrome" },
+  { name: "Classroom", title: "Classroom", url: "classroom.google.com", hosts: ["classroom"], img: "classroom" },
+  { name: "Cloud", title: "Cloud Console", url: "console.cloud.google.com", hosts: ["cloud"], img: "cloud" },
+  { name: "Colab", title: "Colab", url: "colab.research.google.com", hosts: ["colab.research"], img: "collab" },
+  { name: "DataStudio", title: "Looker Studio", url: "datastudio.google.com", hosts: ["datastudio", "lookerstudio"], img: "datastudio" },
+  { name: "Developers", title: "Developers", url: "developers.google.com", hosts: ["developers"], img: "developers" },
+  { name: "Duo", title: "Duo", url: "duo.google.com", hosts: ["duo"], img: "duo" },
+  { name: "Earth", title: "Earth", url: "earth.google.com", hosts: ["earth"], img: "earth" },
+  { name: "Ediscovery", title: "Vault (eDiscovery)", url: "ediscovery.google.com", hosts: ["ediscovery"], img: "ediscovery" },
+  { name: "Finance", title: "Finance", url: "finance.google.com", hosts: ["finance"], paths: ["finance"], img: "finance" },
+  { name: "Firebase", title: "Firebase Console", url: "console.firebase.google.com", hosts: ["firebase"], img: "firebase" },
+  { name: "Groups", title: "Groups", url: "groups.google.com", hosts: ["groups"], img: "groups" },
+  { name: "Hangouts", title: "Hangouts", url: "hangouts.google.com", hosts: ["hangouts"], img: "hangouts" },
+  { name: "Jamboard", title: "Jamboard", url: "jamboard.google.com", hosts: ["jamboard"], img: "jamboard" },
+  { name: "Merchants", title: "Merchant Center", url: "merchants.google.com", hosts: ["merchants"], img: "merchants" },
+  { name: "Messages", title: "Messages", url: "messages.google.com", hosts: ["messages"], img: "messages" },
+  { name: "MyAccount", title: "My Account", url: "myaccount.google.com", hosts: ["myaccount"], img: "google" },
+  { name: "News", title: "News", url: "news.google.com", hosts: ["news"], img: "news" },
+  { name: "One", title: "Google One", url: "one.google.com", hosts: ["one"], img: "one" },
+  { name: "Optimize", title: "Optimize", url: "optimize.google.com", hosts: ["optimize"], img: "optimize" },
+  { name: "Play", title: "Google Play", url: "play.google.com", hosts: ["play"], img: "play" },
+  { name: "Podcasts", title: "Podcasts", url: "podcasts.google.com", hosts: ["podcasts"], img: "podcasts" },
+  { name: "SearchConsole", title: "Search Console", url: "search.google.com", hosts: ["search"], img: "search" },
+  { name: "Sites", title: "Sites", url: "sites.google.com", hosts: ["sites"], img: "sites" },
+  { name: "Stadia", title: "Stadia", url: "stadia.google.com", hosts: ["stadia"], img: "stadia" },
+  { name: "TagManager", title: "Tag Manager", url: "tagmanager.google.com", hosts: ["tagmanager"], img: "tagmanager" },
+  { name: "Translate", title: "Translate", url: "translate.google.com", hosts: ["translate"], img: "translate" },
+  { name: "Voice", title: "Voice", url: "voice.google.com", hosts: ["voice"], img: "voice" },
+  { name: "Workspace", title: "Workspace", url: "workspace.google.com", hosts: ["workspace"], img: "google" },
+  { name: "Books", title: "Books", url: "books.google.com", hosts: ["books"], img: "google", hidden: true },
+  { name: "Travel", title: "Travel", url: "www.google.com/travel", paths: ["travel", "flights"], img: "google", hidden: true },
+].map((service) => ({ ...service, img: `./images/logos/${service.img}.png` }));
+
+// google.com, google.co.uk, google.com.ua, google.de, ...
+const GOOGLE_TLD = "google\\.(?:com|co\\.[a-z]{2}|com\\.[a-z]{2}|[a-z]{2})";
+
+const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+// Regex sources are RE2 compatible, so the same patterns are used for declarativeNetRequest rules.
+function serviceRegexSources(service) {
+  const sources = [];
+  if (service.hosts) {
+    sources.push(
+      `^https?://(?:[^/?#]*\\.)?(?:${service.hosts.map(escapeRegex).join("|")})\\.${GOOGLE_TLD}(?::[0-9]+)?(?:[/?#]|$)`
+    );
+  }
+  if (service.paths) {
+    sources.push(
+      `^https?://(?:www\\.)?${GOOGLE_TLD}(?::[0-9]+)?/(?:${service.paths.map(escapeRegex).join("|")})(?:[/?#]|$)`
+    );
+  }
+  return sources;
+}
+
+const serviceMatchers = GOOGLE_SERVICES.map((service) => ({
+  service,
+  regexes: serviceRegexSources(service).map((s) => new RegExp(s, "i")),
+}));
+
+// URLs that must never be redirected
+const NO_REDIRECT_REGEX_SOURCES = [
+  // the account is already chosen: "/u/1/" in the path
+  "^https?://[^?#]*/u/[0-9]+(?:[/?#]|$)",
+  // document creation - redirecting loses the new document
+  `^https?://docs\\.${GOOGLE_TLD}/[^?#]*/create`,
 ];
+const noRedirectRegexes = NO_REDIRECT_REGEX_SOURCES.map((s) => new RegExp(s, "i"));
 
-// services that switched from the pattern "https://maps.google.com" -> "https://www.google.com/maps"
-const GOOGLE_SERVICE_PATHS = ["maps", "finance", "travel", "flights"];
-
-const googleServiceSubdomainRegex = new RegExp(
-  `^https?:\\/\\/[^?&]*(?:${GOOGLE_SERVICE_SUBDOMAINS.map((s) =>
-    s.replace(/\./g, "\\.")
-  ).join("|")})\\.google\\.co.*`,
-  "i"
-);
-const googleServicePathRegex = new RegExp(
-  `^https?:\\/\\/(www\\.)?google\\.co(?:m|\\.[a-z]{2,3})\\/(?:${GOOGLE_SERVICE_PATHS.join(
-    "|"
-  )})`,
-  "i"
-);
+function getGoogleService(url) {
+  if (!url) return null;
+  const match = serviceMatchers.find((m) => m.regexes.some((r) => r.test(url)));
+  return match ? match.service : null;
+}
 
 function isGoogleServiceUrl(url) {
-  return googleServiceSubdomainRegex.test(url) || googleServicePathRegex.test(url);
+  return Boolean(getGoogleService(url));
 }
 
 function isAnyGoogleUrl(url) {
-  return /^https?:\/\/([^?&]*\.)?google\.co.*/i.test(url);
+  return /^https?:\/\/([^/?#]*\.)?google\.[a-z.]+(?::[0-9]+)?(?:[/?#]|$)/i.test(url || "");
 }
 
-function redirectCurrectTab(defaultAccount) {
-  chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-    if (tabs && tabs[0] && isGoogleServiceUrl(tabs[0].url)) {
-      const url = convertToRedirectUrl(tabs[0].url, defaultAccount);
-      if (url) {
-        chrome.tabs.update(tabs[0].id, { url });
-      }
-    }
-  });
+// the account is already chosen in the URL ("authuser" anywhere, or "/u/{num}/")
+function isRedirectExcluded(url) {
+  return (
+    url.toLowerCase().indexOf("authuser") >= 0 ||
+    noRedirectRegexes.some((r) => r.test(url))
+  );
 }
 
-// converts the "originalUrl" to the redirectUrl
-// if defaultAccount is the same as in "?authuser={num}" or "/u/{num}" - returns null (meaning no need for redirect)
-function convertToRedirectUrl(originalUrl, defaultAccount) {
+// Converts the URL so that it opens with the given account.
+// "/u/{num}/" in the path is replaced, otherwise "?authuser={num}" is set.
+// Returns null if the URL is already for that account.
+function convertToRedirectUrl(originalUrl, accountIndex) {
   const url = new URL(originalUrl);
-  const params = new URLSearchParams(url.search);
-  // check if current user is not the same (?authuser={num} or /u/{num}/)
-  if (`${params.get("authuser")}` === `${defaultAccount}`) return null;
-  const uMatch = originalUrl.match(/\/u\/(\d+)\/?/i);
-  if (uMatch && uMatch[1] && `${uMatch[1]}` === `${defaultAccount}`)
-    return null;
-
-  // current user is different, change
-  params.delete("authuser");
-  params.set("authuser", defaultAccount);
-  url.search = params.toString();
+  const uMatch = url.pathname.match(/\/u\/(\d+)(?=\/|$)/i);
+  if (uMatch) {
+    if (uMatch[1] === `${accountIndex}`) return null;
+    url.pathname = url.pathname.replace(uMatch[0], `/u/${accountIndex}`);
+    url.searchParams.delete("authuser");
+    return url.toString();
+  }
+  if (url.searchParams.get("authuser") === `${accountIndex}`) return null;
+  url.searchParams.set("authuser", accountIndex);
   return url.toString();
 }
 
-function allAccounts(callback) {
-  SyncStorage.get("accounts", callback);
+// Account rules are stored with the account email, because account indexes change
+// when the user signs in/out. Returns the account index to use, or null.
+function resolveAccountIndex(accounts, email, fallbackIndex) {
+  if (email && accounts.length) {
+    const account = accounts.find((a) => a.email === email);
+    return account && account.isLoggedIn ? account.index : null;
+  }
+  const account = accounts.find((a) => a.index === fallbackIndex);
+  return account && account.isLoggedIn ? account.index : null;
 }
 
-function allSupportedGoogleServices() {
-  return [
-    {
-      name: "Calendar",
-      title: "Calendar",
-      url: "calendar.google.com",
-      img: "./images/logos/calendar.png",
-    },
-    {
-      name: "Drive",
-      title: "Drive",
-      url: "drive.google.com",
-      img: "./images/logos/drive.png",
-    },
-    {
-      name: "Maps",
-      title: "Maps",
-      url: "maps.google.com",
-      img: "./images/logos/maps.png",
-    },
-    {
-      name: "Meet",
-      title: "Meet",
-      url: "meet.google.com",
-      img: "./images/logos/meet.png",
-    },
-    {
-      name: "Mail",
-      title: "Mail",
-      url: "mail.google.com",
-      img: "./images/logos/mail.png",
-    },
-    {
-      name: "Docs",
-      title: "Docs",
-      url: "docs.google.com",
-      img: "./images/logos/docs.png",
-    },
-    {
-      name: "Admin",
-      title: "Admin",
-      url: "admin.google.com",
-      img: "./images/logos/admin.png",
-    },
-    {
-      name: "Photos",
-      title: "Photos",
-      url: "photos.google.com",
-      img: "./images/logos/photos.png",
-    },
-    {
-      name: "Translate",
-      title: "Translate",
-      url: "translate.google.com",
-      img: "./images/logos/translate.png",
-    },
-    {
-      name: "Keep",
-      title: "Keep",
-      url: "keep.google.com",
-      img: "./images/logos/keep.png",
-    },
-    {
-      name: "Hangouts",
-      title: "Hangouts",
-      url: "hangouts.google.com",
-      img: "./images/logos/hangouts.png",
-    },
-    {
-      name: "Chat",
-      title: "Chat",
-      url: "chat.google.com",
-      img: "./images/logos/chat.png",
-    },
-    {
-      name: "Workspace",
-      title: "Workspace",
-      url: "workspace.google.com",
-    },
-    {
-      name: "News",
-      title: "News",
-      url: "news.google.com",
-      img: "./images/logos/news.png",
-    },
-    {
-      name: "Ads",
-      title: "Ads",
-      url: "ads.google.com",
-      img: "./images/logos/ads.png",
-    },
-    {
-      name: "Ediscovery",
-      title: "Ediscovery (Vault)",
-      url: "ediscovery.google.com",
-      img: "./images/logos/ediscovery.png",
-    },
-    {
-      name: "Jamboard",
-      title: "Jamboard",
-      url: "jamboard.google.com",
-      img: "./images/logos/jamboard.png",
-    },
-    {
-      name: "Earth",
-      title: "Earth",
-      url: "earth.google.com",
-      img: "./images/logos/earth.png",
-    },
-    {
-      name: "Podcasts",
-      title: "Podcasts",
-      url: "podcasts.google.com",
-      img: "./images/logos/podcasts.png",
-    },
-    {
-      name: "Classroom",
-      title: "Classroom",
-      url: "classroom.google.com",
-      img: "./images/logos/classroom.png",
-    },
-    {
-      name: "Business",
-      title: "Business",
-      url: "business.google.com",
-      img: "./images/logos/business.png",
-    },
-    {
-      name: "MyAccount",
-      title: "MyAccount",
-      url: "myaccount.google.com",
-    },
-    {
-      name: "Adsense",
-      title: "Adsense",
-      url: "adsense.google.com",
-      img: "./images/logos/adsense.png",
-    },
-    {
-      name: "Adwords",
-      title: "Adwords",
-      url: "adwords.google.com",
-      img: "./images/logos/ads.png",
-    },
-    {
-      name: "Cloud",
-      title: "Cloud Console",
-      url: "console.cloud.google.com",
-      img: "./images/logos/cloud.png",
-    },
-    {
-      name: "Analytics",
-      title: "Analytics",
-      url: "analytics.google.com",
-      img: "./images/logos/analytics.png",
-    },
-    {
-      name: "Firebase",
-      title: "Firebase Console",
-      url: "console.firebase.google.com",
-      img: "./images/logos/firebase.png",
-    },
-    {
-      name: "Play",
-      title: "Google Play",
-      url: "play.google.com",
-      img: "./images/logos/play.png",
-    },
-    {
-      name: "Voice",
-      title: "Voice",
-      url: "voice.google.com",
-      img: "./images/logos/voice.png",
-    },
-    {
-      name: "TagManager",
-      title: "Tag Manager",
-      url: "tagmanager.google.com",
-      img: "./images/logos/tagmanager.png",
-    },
-    {
-      name: "Duo",
-      title: "Duo",
-      url: "duo.google.com",
-      img: "./images/logos/duo.png",
-    },
-    {
-      name: "DataStudio",
-      title: "Data Studio",
-      url: "datastudio.google.com",
-      img: "./images/logos/datastudio.png",
-    },
-    {
-      name: "Optimize",
-      title: "Optimize",
-      url: "optimize.google.com",
-      img: "./images/logos/optimize.png",
-    },
-    {
-      name: "Merchants",
-      title: "Merchant Center",
-      url: "merchants.google.com",
-      img: "./images/logos/merchants.png",
-    },
-    {
-      name: "Finance",
-      title: "Finance",
-      url: "finance.google.com",
-      img: "./images/logos/finance.png",
-    },
-    {
-      name: "Collab",
-      title: "Collab Research",
-      url: "colab.research.google.com",
-      img: "./images/logos/colab.png",
-    },
-    {
-      name: "Contacts",
-      title: "Contacts",
-      url: "contacts.google.com",
-      img: "./images/logos/contacts.png",
-    },
-    {
-      name: "Script",
-      title: "Apps Script",
-      url: "script.google.com",
-      img: "./images/logos/script.png",
-    },
-    {
-      name: "Messages",
-      title: "Messages",
-      url: "messages.google.com",
-      img: "./images/logos/messages.png",
-    },
-    {
-      name: "SearchConsole",
-      title: "Search Console",
-      url: "search.google.com",
-      img: "./images/logos/search.png",
-    },
-    {
-      name: "Stadia",
-      title: "Stadia",
-      url: "stadia.google.com",
-      img: "./images/logos/stadia.png",
-    },
-    {
-      name: "Developers",
-      title: "Developers",
-      url: "developers.google.com",
-      img: "./images/logos/developers.png",
-    },
-    {
-      name: "One",
-      title: "Google One",
-      url: "one.google.com",
-      img: "./images/logos/one.png",
-    },
-    {
-      name: "ChromeWebStore",
-      title: "Chrome Web Store",
-      url: "chrome.google.com",
-      img: "./images/logos/chrome.png",
-    },
-    {
-      name: "Sites",
-      title: "Sites",
-      url: "sites.google.com",
-      img: "./images/logos/sites.png",
-    },
-    {
-      name: "Groups",
-      title: "Groups",
-      url: "groups.google.com",
-      img: "./images/logos/groups.png",
-    },
-  ];
+function getServiceByUrl(serviceUrl) {
+  return GOOGLE_SERVICES.find((s) => s.url === serviceUrl) || null;
 }
 
+// The account index for a service: its rule if there is one, the default account otherwise
+function getAccountIndexForService(service, state) {
+  const rule = state.rules.find((r) => r.serviceUrl === service.url);
+  if (rule) return resolveAccountIndex(state.accounts, rule.accountEmail, rule.accountId);
+  return resolveAccountIndex(state.accounts, state.defaultAccountEmail, state.defaultAccount);
+}
+
+function switchTabToAccount(tab, accountIndex) {
+  if (!tab || !isGoogleServiceUrl(tab.url)) return;
+  const url = convertToRedirectUrl(tab.url, accountIndex);
+  if (url) chrome.tabs.update(tab.id, { url });
+}
+
+function redirectCurrentTab(accountIndex) {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) =>
+    switchTabToAccount(tabs && tabs[0], accountIndex)
+  );
+}
+
+// Settings are synced between devices, the signed in accounts are specific to this browser.
 class SyncStorage {
   static store(obj, callback) {
     chrome.storage.sync.set(obj, callback);
@@ -352,5 +172,15 @@ class SyncStorage {
 
   static get(key, callback) {
     chrome.storage.sync.get(key, callback);
+  }
+}
+
+class LocalStorage {
+  static store(obj, callback) {
+    chrome.storage.local.set(obj, callback);
+  }
+
+  static get(key, callback) {
+    chrome.storage.local.get(key, callback);
   }
 }
