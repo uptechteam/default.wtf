@@ -171,7 +171,7 @@ function signIn(email) {
 /* ---------- Picker ---------- */
 
 // The most used services, shown first in the service picker
-const POPULAR_SERVICES = ["Mail", "Calendar", "Drive", "Docs", "Meet", "Chat", "Maps", "Photos"];
+const POPULAR_SERVICES = ["Mail", "Calendar", "Drive", "Docs", "Meet", "Chat", "YouTube", "Maps", "Photos"];
 
 let pickerId = 0;
 let openPicker = null;

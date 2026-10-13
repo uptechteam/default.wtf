@@ -39,6 +39,7 @@ chrome.runtime.onInstalled.addListener(() => {
 
 stateLoaded.then(() => {
   updateRedirectRules();
+  updateAllBadges();
   refreshAccounts();
 });
 
@@ -65,6 +66,7 @@ chrome.storage.onChanged.addListener(async (changes, area) => {
     state.rules = state.rules ?? [];
   }
   updateRedirectRules();
+  updateAllBadges();
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -223,3 +225,39 @@ function updateRedirectRules() {
     )
     .catch((error) => console.error("Failed to update redirect rules", error));
 }
+
+// Toolbar badge: the number of the account the current Google tab is opened with
+const actionApi = chrome.action || chrome.browserAction;
+const BADGE_COLORS = ["#4285f4", "#d66d58", "#1e8e3e", "#a142f4", "#e37400", "#12b5cb", "#e52592", "#5f6368", "#b06000"];
+const DEFAULT_TITLE = chrome.runtime.getManifest().name;
+const ignoreError = () => void chrome.runtime.lastError;
+
+function updateBadge(tab) {
+  if (!actionApi || !tab || tab.id === undefined || tab.id < 0) return;
+  const url = tab.url || tab.pendingUrl;
+  const service = getGoogleService(url);
+  const index = service ? getAccountIndexFromUrl(url, state.accounts) : null;
+  let text = "";
+  let title = state.enabled ? DEFAULT_TITLE : `${DEFAULT_TITLE} (paused)`;
+  if (index !== null) {
+    const account = state.accounts.find((a) => a.index === index);
+    text = `${index + 1}`;
+    title = `${service.title}: ${account ? account.email : `account #${index + 1}`}`;
+    actionApi.setBadgeBackgroundColor({ tabId: tab.id, color: BADGE_COLORS[index % BADGE_COLORS.length] }, ignoreError);
+    if (actionApi.setBadgeTextColor) {
+      actionApi.setBadgeTextColor({ tabId: tab.id, color: "#ffffff" }, ignoreError);
+    }
+  }
+  actionApi.setBadgeText({ tabId: tab.id, text }, ignoreError);
+  actionApi.setTitle({ tabId: tab.id, title }, ignoreError);
+}
+
+function updateAllBadges() {
+  chrome.tabs.query({}, (tabs) => (tabs || []).forEach(updateBadge));
+}
+
+chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
+  if (!changeInfo.url && changeInfo.status !== "loading") return;
+  await stateLoaded;
+  updateBadge(tab);
+});

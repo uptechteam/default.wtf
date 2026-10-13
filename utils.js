@@ -3,6 +3,7 @@
 // Google services the extension handles.
 // - hosts: service subdomains, e.g. "mail" matches mail.google.com, mail.google.co.uk, ...
 // - paths: services that live under www.google.com, e.g. "maps" matches www.google.com/maps
+// - siteHosts: full host names of services outside of Google domains, e.g. "www.youtube.com"
 // - hidden: handled by the default account, but not offered in the "Rules" picker
 // Full list of Google Services subdomains - https://gist.github.com/abuvanth/b9fcbaf7c77c2954f96c6e556138ffe8
 const GOOGLE_SERVICES = [
@@ -52,9 +53,15 @@ const GOOGLE_SERVICES = [
   { name: "Translate", title: "Translate", url: "translate.google.com", hosts: ["translate"], img: "translate" },
   { name: "Voice", title: "Voice", url: "voice.google.com", hosts: ["voice"], img: "voice" },
   { name: "Workspace", title: "Workspace", url: "workspace.google.com", hosts: ["workspace"], img: "google" },
+  { name: "YouTube", title: "YouTube", url: "www.youtube.com", siteHosts: ["www.youtube.com", "m.youtube.com", "youtube.com"], img: "youtube.svg" },
+  { name: "YouTubeMusic", title: "YouTube Music", url: "music.youtube.com", siteHosts: ["music.youtube.com"], img: "youtube-music.svg" },
+  { name: "YouTubeStudio", title: "YouTube Studio", url: "studio.youtube.com", siteHosts: ["studio.youtube.com"], img: "youtube-studio.svg" },
   { name: "Books", title: "Books", url: "books.google.com", hosts: ["books"], img: "google", hidden: true },
   { name: "Travel", title: "Travel", url: "www.google.com/travel", paths: ["travel", "flights"], img: "google", hidden: true },
-].map((service) => ({ ...service, img: `./images/logos/${service.img}.png` }));
+].map((service) => ({
+  ...service,
+  img: `./images/logos/${service.img.includes(".") ? service.img : `${service.img}.png`}`,
+}));
 
 // google.com, google.co.uk, google.com.ua, google.de, ...
 const GOOGLE_TLD = "google\\.(?:com|co\\.[a-z]{2}|com\\.[a-z]{2}|[a-z]{2})";
@@ -67,6 +74,11 @@ function serviceRegexSources(service) {
   if (service.hosts) {
     sources.push(
       `^https?://(?:[^/?#]*\\.)?(?:${service.hosts.map(escapeRegex).join("|")})\\.${GOOGLE_TLD}(?::[0-9]+)?(?:[/?#]|$)`
+    );
+  }
+  if (service.siteHosts) {
+    sources.push(
+      `^https?://(?:${service.siteHosts.map(escapeRegex).join("|")})(?::[0-9]+)?(?:[/?#]|$)`
     );
   }
   if (service.paths) {
@@ -102,7 +114,25 @@ function isGoogleServiceUrl(url) {
 }
 
 function isAnyGoogleUrl(url) {
-  return /^https?:\/\/([^/?#]*\.)?google\.[a-z.]+(?::[0-9]+)?(?:[/?#]|$)/i.test(url || "");
+  return /^https?:\/\/([^/?#]*\.)?(?:google\.[a-z.]+|youtube\.com)(?::[0-9]+)?(?:[/?#]|$)/i.test(url || "");
+}
+
+// The account index the URL is opened with: "/u/{num}/" or "?authuser={num|email}".
+// Without them Google uses the first account.
+function getAccountIndexFromUrl(url, accounts) {
+  let parsed;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return null;
+  }
+  const uMatch = parsed.pathname.match(/\/u\/(\d+)(?=\/|$)/i);
+  if (uMatch) return parseInt(uMatch[1]);
+  const authuser = parsed.searchParams.get("authuser");
+  if (authuser === null || authuser === "") return 0;
+  if (/^\d+$/.test(authuser)) return parseInt(authuser);
+  const account = accounts.find((a) => a.email && a.email.toLowerCase() === authuser.toLowerCase());
+  return account ? account.index : null;
 }
 
 // the account is already chosen in the URL ("authuser" anywhere, or "/u/{num}/")
